@@ -1,5 +1,5 @@
-from loginapp import app
-from loginapp import db
+from lccapp import app
+from lccapp import db
 from flask import redirect, render_template, session, url_for
 
 @app.route('/staff/home')
@@ -10,10 +10,10 @@ def staff_home():
      - get: Renders the homepage for the current staff user, or an "Access
           Denied" 403: Forbidden page if the current user has a different role.
 
-     If the user is not logged in, requests will redirect to the login page.
+     If the user is not logged in, requests will redirect to the lcc page.
      """
      if 'loggedin' not in session:
-          return redirect(url_for('login'))
+          return redirect(url_for('lcc'))
      elif session['role']!='staff':
           return render_template('access_denied.html'), 403
 

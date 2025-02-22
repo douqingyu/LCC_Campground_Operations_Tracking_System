@@ -1,4 +1,4 @@
-# This script runs automatically when our `loginapp` module is first loaded,
+# This script runs automatically when our `lccapp` module is first loaded,
 # and handles all the setup for our Flask app.
 from flask import Flask
 
@@ -18,12 +18,12 @@ app = Flask(__name__)
 app.secret_key = 'Example Secret Key (CHANGE THIS TO YOUR OWN SECRET KEY!)'
 
 # Set up database connection.
-from loginapp import connect
-from loginapp import db
+from lccapp import connect
+from lccapp import db
 db.init_db(app, connect.dbuser, connect.dbpass, connect.dbhost, connect.dbname)
 
 # Include all modules that define our Flask route-handling functions.
-from loginapp import user
-from loginapp import customer
-from loginapp import staff
-from loginapp import admin
+from lccapp import user
+from lccapp import visitor
+from lccapp import helper
+from lccapp import admin

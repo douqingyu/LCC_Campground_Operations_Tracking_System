@@ -1,5 +1,5 @@
-from loginapp import app
-from loginapp import db
+from lccapp import app
+from lccapp import db
 from flask import redirect, render_template, request, session, url_for
 from flask_bcrypt import Bcrypt
 import re

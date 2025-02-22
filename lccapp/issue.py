@@ -1,5 +1,5 @@
-from loginapp import app
-from loginapp import db
+from lccapp import app
+from lccapp import db
 from flask import redirect, render_template, session, url_for
 
 @app.route('/staff/home')
