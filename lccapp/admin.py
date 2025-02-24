@@ -1,43 +1,78 @@
 from lccapp import app, db, bcrypt
 from flask import redirect, render_template, request, session, url_for, flash
+from functools import wraps
 
-# Helper function to check admin access
-def is_admin():
-    """Check if the current user is an admin"""
-    return 'loggedin' in session and session['role'] == 'admin'
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'loggedin' not in session:
+            return redirect(url_for('login'))
+        if session['role'] != 'admin':
+            return render_template('access_denied.html'), 403
+        return f(*args, **kwargs)
+    return decorated_function
 
 @app.route('/admin/home')
+@admin_required
 def admin_home():
-    """Admin Homepage endpoint.
-    
-    Shows list of all issues with management options and user management links.
-    Requires admin role.
-    """
-    if not is_admin():
-        return render_template('access_denied.html'), 403
-
-    # Get all issues for admin view
+    """Admin Homepage endpoint."""
+    # Get issue statistics
     with db.get_cursor() as cursor:
+        # Get counts for each status
         cursor.execute('''
-            SELECT i.*, u.username, u.role, u.profile_image
+            SELECT status, COUNT(*) as count
+            FROM issues
+            GROUP BY status
+        ''')
+        status_results = cursor.fetchall()
+        
+        # Convert to dictionary
+        status_counts = {
+            'new': 0,
+            'open': 0,
+            'stalled': 0,
+            'resolved': 0
+        }
+        for row in status_results:
+            if row['status'] in status_counts:
+                status_counts[row['status']] = row['count']
+        
+        # Get active issues with creator info
+        cursor.execute('''
+            SELECT i.*, u.username, u.profile_image
             FROM issues i
             JOIN users u ON i.user_id = u.user_id
-            ORDER BY i.status, i.created_at DESC
+            WHERE i.status != 'resolved'
+            ORDER BY 
+                CASE i.status
+                    WHEN 'new' THEN 1
+                    WHEN 'open' THEN 2
+                    WHEN 'stalled' THEN 3
+                END,
+                i.created_at DESC
         ''')
-        issues = cursor.fetchall()
+        active_issues = cursor.fetchall()
+        
+        # Add status colors for easier display
+        for issue in active_issues:
+            issue['status_color'] = {
+                'new': 'danger',
+                'open': 'primary',
+                'stalled': 'warning',
+                'resolved': 'success'
+            }.get(issue['status'], 'secondary')
 
-    return render_template('admin/home.html', issues=issues)
+    return render_template('admin_home.html',
+                         active_issues=active_issues,
+                         new_count=status_counts['new'],
+                         open_count=status_counts['open'],
+                         stalled_count=status_counts['stalled'],
+                         resolved_count=status_counts['resolved'])
 
 @app.route('/admin/users', methods=['GET'])
+@admin_required
 def manage_users():
-    """User management page.
-    
-    Allows searching users and viewing their details.
-    Search by username, first name, or last name.
-    """
-    if not is_admin():
-        return render_template('access_denied.html'), 403
-
+    """User management page."""
     search = request.args.get('search', '')
     
     with db.get_cursor() as cursor:
@@ -51,15 +86,38 @@ def manage_users():
         else:
             cursor.execute('SELECT * FROM users')
         users = cursor.fetchall()
+        
+        # 获取问题统计数据（与admin_home相同的查询）
+        cursor.execute('''
+            SELECT status, COUNT(*) as count
+            FROM issues
+            GROUP BY status
+        ''')
+        status_results = cursor.fetchall()
+        
+        status_counts = {
+            'new': 0,
+            'open': 0,
+            'stalled': 0,
+            'resolved': 0
+        }
+        for row in status_results:
+            if row['status'] in status_counts:
+                status_counts[row['status']] = row['count']
 
-    return render_template('admin/users.html', users=users, search=search)
+    return render_template('admin_home.html', 
+                           users=users, 
+                           search=search,
+                           show_users=True,
+                           new_count=status_counts['new'],
+                           open_count=status_counts['open'],
+                           stalled_count=status_counts['stalled'],
+                           resolved_count=status_counts['resolved'])
 
 @app.route('/admin/users/<int:user_id>/status', methods=['POST'])
+@admin_required
 def change_user_status(user_id):
     """Change user's active/inactive status"""
-    if not is_admin():
-        return render_template('access_denied.html'), 403
-
     new_status = request.form.get('status')
     if new_status not in ['active', 'inactive']:
         flash('Invalid status value', 'error')
@@ -76,11 +134,9 @@ def change_user_status(user_id):
     return redirect(url_for('manage_users'))
 
 @app.route('/admin/users/<int:user_id>/role', methods=['POST'])
+@admin_required
 def change_user_role(user_id):
-    """Change user's role (visitor/helper/admin)"""
-    if not is_admin():
-        return render_template('access_denied.html'), 403
-
+    """Change user's role"""
     new_role = request.form.get('role')
     if new_role not in ['visitor', 'helper', 'admin']:
         flash('Invalid role value', 'error')
@@ -96,12 +152,10 @@ def change_user_role(user_id):
     flash('User role updated successfully', 'success')
     return redirect(url_for('manage_users'))
 
-@app.route('/admin/issues/<int:issue_id>/status', methods=['POST'])
+@app.route('/admin/issue/<int:issue_id>/status', methods=['POST'])
+@admin_required
 def change_issue_status(issue_id):
     """Change issue status"""
-    if not is_admin():
-        return render_template('access_denied.html'), 403
-
     new_status = request.form.get('status')
     if new_status not in ['new', 'open', 'stalled', 'resolved']:
         flash('Invalid status value', 'error')

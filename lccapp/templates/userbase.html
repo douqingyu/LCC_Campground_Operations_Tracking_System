@@ -23,24 +23,10 @@
                                  {% elif session['role'] == 'helper' %}{{ url_for('helper_home') }}
                                  {% elif session['role'] == 'admin' %}{{ url_for('admin_home') }}{% endif %}">Home</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link{{' active' if active_page=='report' else ''}}" 
-                           href="{{ url_for('issues.report') }}">Report Issue</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link{{' active' if active_page=='myissues' else ''}}" 
-                           href="{{ url_for('issues.my_issues') }}">My Issues</a>
-                    </li>
-                    {% if session['role'] in ['helper', 'admin'] %}
-                    <li class="nav-item">
-                        <a class="nav-link{{' active' if active_page=='allissues' else ''}}" 
-                           href="{{ url_for('issues.all') }}">All Issues</a>
-                    </li>
-                    {% endif %}
                     {% if session['role'] == 'admin' %}
                     <li class="nav-item">
                         <a class="nav-link{{' active' if active_page=='users' else ''}}" 
-                           href="{{ url_for('admin.users') }}">Manage Users</a>
+                           href="{{ url_for('manage_users') }}">Manage Users</a>
                     </li>
                     {% endif %}
                 </ul>

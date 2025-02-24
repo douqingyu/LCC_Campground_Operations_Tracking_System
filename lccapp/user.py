@@ -9,21 +9,18 @@ import re
 flask_bcrypt = Bcrypt(app)
 
 # Default role assigned to new users upon registration.
-DEFAULT_USER_ROLE = 'customer'
+DEFAULT_USER_ROLE = 'visitor'
 
 def user_home_url():
-    """Generates a URL to the homepage for the currently logged-in user.
-    
-    If the user is not logged in, or the role stored in their session cookie is
-    invalid, this returns the URL for the login page instead."""
+    """Generates a URL to the homepage for the currently logged-in user."""
     role = session.get('role', None)
 
-    if role=='customer':
-        home_endpoint='customer_home'
-    elif role=='staff':
-        home_endpoint='staff_home'
-    elif role=='admin':
-        home_endpoint='admin_home'
+    if role == 'visitor':  
+        home_endpoint = 'visitor_home'
+    elif role == 'helper':  
+        home_endpoint = 'helper_home'
+    elif role == 'admin':
+        home_endpoint = 'admin_home'
     else:
         home_endpoint = 'login'
     
