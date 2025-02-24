@@ -82,7 +82,7 @@
                                 {{ issue.reporter.username }}
                             </div>
                         </td>
-                        <td>{{ issue.created_at|datetime }}</td>
+                        <td>{{ issue.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
                         <td>
                             <div class="btn-group">
                                 <button class="btn btn-sm btn-outline-primary dropdown-toggle" 
