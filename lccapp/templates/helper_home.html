@@ -1,17 +1,136 @@
 {% extends 'userbase.html' %}
 
-{% block title %}Staff Home{% endblock %}
+{% block title %}Helper Dashboard - LCC Issue Tracker{% endblock %}
 
-{# Set the active page to be highlighted in the navigation bar. #}
 {% set active_page = 'home' %}
 
 {% block content %}
-<section class="container py-5 text-center">
-    <div class="row justify-content-center">
-        <div class="col-lg-7">
-            <h1>Staff Home Page</h1>
-            <p class="lead text-muted">This is the page a staff member sees when they first sign in. It should provide quick access to the information and features they're most likely to need when using the app.</p>
+<div class="container py-4">
+    <!-- Dashboard Overview -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Helper Dashboard</h1>
+            <p class="text-muted">Manage and resolve issues for Lincoln Community Campground</p>
         </div>
     </div>
-</section>
+
+    <!-- Issue Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-danger">
+                <div class="card-body">
+                    <h5 class="card-title">New Issues</h5>
+                    <h2 class="mb-0">{{ new_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Open Issues</h5>
+                    <h2 class="mb-0">{{ open_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Stalled Issues</h5>
+                    <h2 class="mb-0">{{ stalled_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Resolved Issues</h5>
+                    <h2 class="mb-0">{{ resolved_count }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Issues Table -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="h5 mb-0">Active Issues</h2>
+        </div>
+        <div class="card-body">
+            {% if active_issues %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Summary</th>
+                            <th>Reporter</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for issue in active_issues %}
+                        <tr>
+                            <td>
+                                <span class="badge bg-{{ issue.status_color }}">
+                                    {{ issue.status }}
+                                </span>
+                            </td>
+                            <td>{{ issue.summary }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if issue.profile_image %}
+                                    <img src="{{ url_for('static', filename='uploads/' + issue.profile_image) }}" 
+                                         class="rounded-circle me-2" width="32" height="32" alt="Profile">
+                                    {% endif %}
+                                    {{ issue.username }}
+                                </div>
+                            </td>
+                            <td>{{ issue.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <form action="{{ url_for('helper_change_issue_status', issue_id=issue.issue_id) }}" 
+                                      method="post" class="d-inline">
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle" 
+                                                data-bs-toggle="dropdown">
+                                            Status
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><button type="submit" name="status" value="new" 
+                                                      class="dropdown-item">New</button></li>
+                                            <li><button type="submit" name="status" value="open" 
+                                                      class="dropdown-item">Open</button></li>
+                                            <li><button type="submit" name="status" value="stalled" 
+                                                      class="dropdown-item">Stalled</button></li>
+                                            <li><button type="submit" name="status" value="resolved" 
+                                                      class="dropdown-item">Resolved</button></li>
+                                        </ul>
+                                    </div>
+                                </form>
+                                <a href="{{ url_for('view_issue', issue_id=issue.issue_id) }}" 
+                                   class="btn btn-sm btn-outline-secondary">View</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-center text-muted my-4">No active issues at the moment.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
 {% endblock %}

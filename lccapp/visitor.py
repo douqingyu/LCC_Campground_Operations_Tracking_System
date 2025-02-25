@@ -1,50 +1,92 @@
-from lccapp import app
-from lccapp import db
-from flask import redirect, render_template, session, url_for
+from lccapp import app, db
+from flask import redirect, render_template, session, url_for, request, flash
+from functools import wraps
 
-@app.route('/customer/home')
-def customer_home():
-     """Customer Homepage endpoint.
+def visitor_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'loggedin' not in session:
+            return redirect(url_for('login'))
+        if session['role'] != 'visitor':
+            return render_template('access_denied.html'), 403
+        return f(*args, **kwargs)
+    return decorated_function
 
-     Methods:
-     - get: Renders the homepage for the current customer, or an "Access
-          Denied" 403: Forbidden page if the current user has a different role.
+@app.route('/visitor/home')
+@visitor_required
+def visitor_home():
+    """Visitor Homepage endpoint.
+    
+    Shows recent issues reported by the visitor and provides
+    a quick link to report new issues.
+    """
+    with db.get_cursor() as cursor:
+        # Get recent issues reported by this visitor
+        cursor.execute('''
+            SELECT i.*, 
+                  (SELECT COUNT(*) FROM comments WHERE issue_id = i.issue_id) AS comment_count
+            FROM issues i
+            WHERE i.user_id = %s
+            ORDER BY i.created_at DESC
+            LIMIT 5
+        ''', (session['user_id'],))
+        recent_issues = cursor.fetchall()
+        
+        # Add status colors for easier display
+        for issue in recent_issues:
+            issue['status_color'] = {
+                'new': 'danger',
+                'open': 'primary',
+                'stalled': 'warning',
+                'resolved': 'success'
+            }.get(issue['status'], 'secondary')
 
-     If the user is not logged in, requests will redirect to the login page.
-     """
-     # Note: You'll need to use "logged in" and role checks like the ones below
-     # on every single endpoint that should be restricted to logged-in users,
-     # or users with a certain role. Otherwise, anyone who knows the URL can
-     # access that page.
-     #
-     # In this example we've just repeated the code everywhere (you'll see the
-     # same checks in staff.py and admin.py), but it would be a great idea to
-     # extract these checks into reusable functions. You could place them in
-     # user.py with the rest of the login system, for example, and import them
-     # into other modules as necessary.
-     #
-     # One common way to implement login and role checks in Flask is with "View
-     # Decorators", such as the "login_required" example in the official
-     # tutorial [1]. If you choose to use that approach, you'll need to adapt
-     # it a little to our project, as we don't store the username in `g.user`.
-     #
-     # References:
-     # [1] https://flask.palletsprojects.com/en/stable/patterns/viewdecorators/
+    return render_template('visitor_home.html', recent_issues=recent_issues)
 
-     if 'loggedin' not in session:
-          # The user isn't logged in, so redirect them to the login page.
-          return redirect(url_for('login'))
-     elif session['role']!='customer':
-          # The user isn't logged in with a customer account, so return an
-          # "Access Denied" page instead. We don't do a redirect here, because
-          # we're not sending them somewhere else: just delivering an
-          # alternative page.
-          # 
-          # Note: the '403' below returns HTTP status code 403: Forbidden to the
-          # browser, indicating that the user was not allowed to access the
-          # requested page.
-          return render_template('access_denied.html'), 403
+@app.route('/visitor/report', methods=['GET', 'POST'])
+@visitor_required
+def report_issue():
+    """Report a new issue."""
+    if request.method == 'POST':
+        summary = request.form.get('summary')
+        description = request.form.get('description')
+        
+        if not summary or not description:
+            flash('Please provide both summary and description', 'danger')
+            return render_template('visitor_report.html')
+        
+        with db.get_cursor() as cursor:
+            cursor.execute('''
+                INSERT INTO issues (user_id, summary, description, status, created_at)
+                VALUES (%s, %s, %s, 'new', NOW())
+            ''', (session['user_id'], summary, description))
+        
+        flash('Issue reported successfully', 'success')
+        return redirect(url_for('visitor_home'))
+        
+    return render_template('visitor_report.html')
 
-     # The user is logged in with a customer account, so render the customer
-     # homepage as requested.
-     return render_template('customer_home.html')
+@app.route('/visitor/issues')
+@visitor_required
+def my_issues():
+    """View all issues reported by the current visitor."""
+    with db.get_cursor() as cursor:
+        cursor.execute('''
+            SELECT i.*, 
+                  (SELECT COUNT(*) FROM comments WHERE issue_id = i.issue_id) AS comment_count
+            FROM issues i
+            WHERE i.user_id = %s
+            ORDER BY i.created_at DESC
+        ''', (session['user_id'],))
+        issues = cursor.fetchall()
+        
+        # Add status colors for easier display
+        for issue in issues:
+            issue['status_color'] = {
+                'new': 'danger',
+                'open': 'primary',
+                'stalled': 'warning',
+                'resolved': 'success'
+            }.get(issue['status'], 'secondary')
+    
+    return render_template('visitor_issues.html', issues=issues)

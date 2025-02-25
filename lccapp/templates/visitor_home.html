@@ -1,17 +1,95 @@
 {% extends 'userbase.html' %}
 
-{% block title %}Customer Home{% endblock %}
+{% block title %}Visitor Dashboard - LCC Issue Tracker{% endblock %}
 
-{# Set the active page to be highlighted in the navigation bar. #}
 {% set active_page = 'home' %}
 
 {% block content %}
-<section class="container py-5 text-center">
-    <div class="row justify-content-center">
-        <div class="col-lg-7">
-            <h1>Customer Home Page</h1>
-            <p class="lead text-muted">This is the page a customer sees when they first sign in. It should provide quick access to the information and features they're most likely to need when using the app.</p>
+<div class="container py-4">
+    <!-- Welcome section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Welcome to Lincoln Community Campground</h1>
+            <p class="lead">Report and track maintenance issues during your stay.</p>
         </div>
     </div>
-</section>
+    
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3 mb-md-0">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Report an Issue</h5>
+                    <p class="card-text">Found something that needs fixing? Let us know so we can make your stay more comfortable.</p>
+                    <a href="{{ url_for('report_issue') }}" class="btn btn-primary mt-auto">Report New Issue</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">View My Issues</h5>
+                    <p class="card-text">Check the status of issues you've already reported.</p>
+                    <a href="{{ url_for('my_issues') }}" class="btn btn-secondary mt-auto">View All My Issues</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Issues -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="h5 mb-0">Recently Reported Issues</h2>
+        </div>
+        <div class="card-body">
+            {% if recent_issues %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Summary</th>
+                            <th>Date</th>
+                            <th>Comments</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for issue in recent_issues %}
+                        <tr>
+                            <td>
+                                <span class="badge bg-{{ issue.status_color }}">
+                                    {{ issue.status }}
+                                </span>
+                            </td>
+                            <td>{{ issue.summary }}</td>
+                            <td>{{ issue.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ issue.comment_count }}</td>
+                            <td>
+                                <a href="{{ url_for('view_issue', issue_id=issue.issue_id) }}" 
+                                   class="btn btn-sm btn-outline-secondary">View</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-center text-muted my-4">You haven't reported any issues yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
 {% endblock %}
