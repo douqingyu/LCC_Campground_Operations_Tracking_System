@@ -1,8 +1,12 @@
 from lccapp import app
 from lccapp import db
-from flask import redirect, render_template, request, session, url_for
+from flask import redirect, render_template, request, session, url_for, flash
 from flask_bcrypt import Bcrypt
 import re
+import os
+import time
+import re
+from werkzeug.utils import secure_filename
 
 # Create an instance of the Bcrypt class, which we'll be using to hash user
 # passwords during login and registration.
@@ -241,22 +245,169 @@ def signup():
 def profile():
     """User Profile page endpoint.
 
-    Methods:
-    - get: Renders the user profile page for the current user.
-
-    If the user is not logged in, requests will redirect to the login page.
+    Shows the user's profile information and allows them to edit it.
     """
     if 'loggedin' not in session:
          return redirect(url_for('login'))
 
     # Retrieve user profile from the database.
     with db.get_cursor() as cursor:
-        cursor.execute('SELECT username, email, role FROM users WHERE user_id = %s;',
-                       (session['user_id'],))
+        cursor.execute('''
+            SELECT username, email, first_name, last_name, location, role, profile_image 
+            FROM users WHERE user_id = %s
+        ''', (session['user_id'],))
         profile = cursor.fetchone()
 
     return render_template('profile.html', profile=profile)
 
+@app.route('/update-profile', methods=['POST'])
+def update_profile():
+    """Update user profile details."""
+    if 'loggedin' not in session:
+        return redirect(url_for('login'))
+    
+    email = request.form.get('email')
+    first_name = request.form.get('first_name')
+    last_name = request.form.get('last_name')
+    location = request.form.get('location')
+    
+    # Validate email format
+    if not re.match(r'[^@]+@[^@]+\.[^@]+', email):
+        return render_template('profile.html', 
+                             profile={'username': session['username'], 
+                                     'email': email,
+                                     'first_name': first_name,
+                                     'last_name': last_name,
+                                     'location': location,
+                                     'role': session['role']},
+                             email_error='Invalid email format')
+    
+    # Update user profile in database
+    with db.get_cursor() as cursor:
+        cursor.execute('''
+            UPDATE users 
+            SET email = %s, first_name = %s, last_name = %s, location = %s
+            WHERE user_id = %s
+        ''', (email, first_name, last_name, location, session['user_id']))
+    
+    flash('Profile updated successfully', 'success')
+    return redirect(url_for('profile'))
+
+@app.route('/update-profile-image', methods=['POST'])
+def update_profile_image():
+    """Update or remove user profile image."""
+    if 'loggedin' not in session:
+        return redirect(url_for('login'))
+    
+    # Check if user wants to remove their profile image
+    if 'remove_image' in request.form:
+        with db.get_cursor() as cursor:
+            # Get current image filename
+            cursor.execute('SELECT profile_image FROM users WHERE user_id = %s', (session['user_id'],))
+            current_image = cursor.fetchone()['profile_image']
+            
+            # Remove file if it exists
+            if current_image:
+                image_path = os.path.join(app.config['UPLOAD_FOLDER'], current_image)
+                if os.path.exists(image_path):
+                    os.remove(image_path)
+            
+            # Update database
+            cursor.execute('UPDATE users SET profile_image = NULL WHERE user_id = %s', (session['user_id'],))
+        
+        flash('Profile image removed', 'success')
+        return redirect(url_for('profile'))
+    
+    # Handle file upload
+    if 'profile_image' not in request.files:
+        flash('No file selected', 'error')
+        return redirect(url_for('profile'))
+    
+    file = request.files['profile_image']
+    if file.filename == '':
+        flash('No file selected', 'error')
+        return redirect(url_for('profile'))
+    
+    if file and allowed_file(file.filename):
+        # Generate secure filename
+        filename = secure_filename(f"{session['user_id']}_{int(time.time())}_{file.filename}")
+        
+        # Ensure upload directory exists
+        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+        
+        # Save file
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+        
+        # Update database with new filename
+        with db.get_cursor() as cursor:
+            # Get and delete old image if exists
+            cursor.execute('SELECT profile_image FROM users WHERE user_id = %s', (session['user_id'],))
+            current_image = cursor.fetchone()['profile_image']
+            
+            if current_image:
+                old_path = os.path.join(app.config['UPLOAD_FOLDER'], current_image)
+                if os.path.exists(old_path):
+                    os.remove(old_path)
+            
+            # Update with new image
+            cursor.execute('UPDATE users SET profile_image = %s WHERE user_id = %s', 
+                          (filename, session['user_id']))
+        
+        flash('Profile image updated', 'success')
+    else:
+        flash('Invalid file type. Please upload an image file.', 'error')
+    
+    return redirect(url_for('profile'))
+
+@app.route('/change-password', methods=['POST'])
+def change_password():
+    """Change user password."""
+    if 'loggedin' not in session:
+        return redirect(url_for('login'))
+    
+    current_password = request.form.get('current_password')
+    new_password = request.form.get('new_password')
+    confirm_password = request.form.get('confirm_password')
+    
+    # Retrieve current user info
+    with db.get_cursor() as cursor:
+        cursor.execute('SELECT * FROM users WHERE user_id = %s', (session['user_id'],))
+        user = cursor.fetchone()
+    
+    # Check if current password matches
+    if not flask_bcrypt.check_password_hash(user['password_hash'], current_password):
+        flash('Current password is incorrect', 'danger')
+        return redirect(url_for('profile'))
+    
+    # Check if new password meets requirements
+    if len(new_password) < 8:
+        flash('New password must be at least 8 characters long', 'danger')
+        return redirect(url_for('profile'))
+    
+    # Check if passwords match
+    if new_password != confirm_password:
+        flash('New passwords do not match', 'danger')
+        return redirect(url_for('profile'))
+    
+    # Check if new password is different from current
+    if current_password == new_password:
+        flash('New password must be different from current password', 'danger')
+        return redirect(url_for('profile'))
+    
+    # Hash new password and update
+    password_hash = flask_bcrypt.generate_password_hash(new_password)
+    with db.get_cursor() as cursor:
+        cursor.execute('UPDATE users SET password_hash = %s WHERE user_id = %s', 
+                      (password_hash, session['user_id']))
+    
+    flash('Password changed successfully', 'success')
+    return redirect(url_for('profile'))
+
+# Helper function for file uploads
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 @app.route('/logout')
 def logout():
     """Logout endpoint.
