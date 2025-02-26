@@ -408,6 +408,40 @@ def change_password():
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+@app.route('/report', methods=['GET', 'POST'])
+def report_issue():
+    """Report a new issue.
+    
+    This endpoint is accessible to all authenticated users regardless of their role.
+    All issues must have a brief summary and a longer description.
+    Issues always begin in 'new' status.
+    """
+    if 'loggedin' not in session:
+         return redirect(url_for('login'))
+         
+    if request.method == 'POST':
+        summary = request.form.get('summary')
+        description = request.form.get('description')
+        
+        if not summary or not description:
+            flash('Please provide both summary and description', 'danger')
+            return render_template('report_issue.html')  # Make sure this matches the template name
+        
+        with db.get_cursor() as cursor:
+            cursor.execute('''
+                INSERT INTO issues (user_id, summary, description, status, created_at)
+                VALUES (%s, %s, %s, 'new', NOW())
+            ''', (session['user_id'], summary, description))
+        
+        flash('Issue reported successfully', 'success')
+        
+        # Redirect to the appropriate home page based on role
+        return redirect(user_home_url())
+        
+    return render_template('report_issue.html')  # Make sure this matches the template name
+
+
 @app.route('/logout')
 def logout():
     """Logout endpoint.

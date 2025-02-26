@@ -43,9 +43,10 @@ def visitor_home():
 
     return render_template('visitor_home.html', recent_issues=recent_issues)
 
+# Updated to use the common report_issue.html template
 @app.route('/visitor/report', methods=['GET', 'POST'])
 @visitor_required
-def report_issue():
+def visitor_report():
     """Report a new issue."""
     if request.method == 'POST':
         summary = request.form.get('summary')
@@ -53,7 +54,7 @@ def report_issue():
         
         if not summary or not description:
             flash('Please provide both summary and description', 'danger')
-            return render_template('visitor_report.html')
+            return render_template('report_issue.html')  # Changed from visitor_report.html
         
         with db.get_cursor() as cursor:
             cursor.execute('''
@@ -64,7 +65,7 @@ def report_issue():
         flash('Issue reported successfully', 'success')
         return redirect(url_for('visitor_home'))
         
-    return render_template('visitor_report.html')
+    return render_template('report_issue.html')  # Changed from visitor_report.html
 
 @app.route('/visitor/issues')
 @visitor_required

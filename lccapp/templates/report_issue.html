@@ -1,0 +1,69 @@
+{% extends 'userbase.html' %}
+
+{% block title %}Report Issue - LCC Issue Tracker{% endblock %}
+
+{% set active_page = 'report' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Report an Issue</h1>
+            <p class="text-muted">Report a maintenance issue at Lincoln Community Campground</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('report_issue') }}">
+                        <div class="mb-3">
+                            <label for="summary" class="form-label">Summary</label>
+                            <input type="text" class="form-control" id="summary" name="summary" 
+                                   placeholder="Brief description of the issue (e.g., 'Fire pit damaged')" required>
+                            <div class="form-text text-muted">
+                                Keep it short and descriptive.
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="5" 
+                                      placeholder="Detailed description of the issue (e.g., 'Some of the rocks around the fire pit in site 4 are missing, leaving it unsafe to use.')" required></textarea>
+                            <div class="form-text text-muted">
+                                Please provide details about the location, severity, and any other relevant information.
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Submit Issue
+                            </button>
+                            <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card bg-light mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-info-circle"></i> Tips for reporting issues
+                    </h5>
+                    <ul class="mb-0">
+                        <li>Be specific about the location (e.g., "campsite #7", "main bathroom", "hiking trail entrance")</li>
+                        <li>Include relevant details like size, severity, or potential safety concerns</li>
+                        <li>Your issue will be assigned a status of "new" and staff will review it soon</li>
+                        <li>You can track the status of your reported issues from your dashboard</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

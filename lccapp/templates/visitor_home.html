@@ -76,20 +76,11 @@
             </div>
             {% else %}
             <p class="text-center text-muted my-4">You haven't reported any issues yet.</p>
+            <div class="text-center">
+                <a href="{{ url_for('report_issue') }}" class="btn btn-success">Report Your First Issue</a>
+            </div>
             {% endif %}
         </div>
     </div>
 </div>
-
-<!-- Flash Messages -->
-{% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        {% endfor %}
-    {% endif %}
-{% endwith %}
 {% endblock %}
