@@ -81,7 +81,8 @@
         </div>
     </div>
     
-    <!-- Add Comment Form -->
+    <!-- Add Comment Form - visible to helpers, admins, or the issue reporter -->
+    {% if user_role in ['helper', 'admin'] or user_id == issue.user_id %}
     <div class="card">
         <div class="card-header">
             <h3>Add Comment</h3>
@@ -96,6 +97,7 @@
             </form>
         </div>
     </div>
+    {% endif %}
 </div>
 
 <!-- Flash Messages -->
