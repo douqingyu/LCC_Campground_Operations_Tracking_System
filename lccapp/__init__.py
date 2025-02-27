@@ -19,7 +19,7 @@ from lccapp import db
 db.init_db(app, connect.dbuser, connect.dbpass, connect.dbhost, connect.dbname)
 
 # Import all modules that define our Flask route-handling functions
-from lccapp import (user, visitor, helper, admin, comment,issue)
+from lccapp import (user, visitor, helper, admin,issue)
 
 # 在__init__.py文件中更新配置
 import os

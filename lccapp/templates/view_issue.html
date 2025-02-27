@@ -31,25 +31,6 @@
                     <p>{{ issue.description }}</p>
                 </div>
             </div>
-            
-            {% if user_role in ['helper', 'admin'] %}
-            <div class="d-flex justify-content-end">
-                <form action="{{ url_for('change_issue_status', issue_id=issue.issue_id) }}" method="post">
-                    <div class="btn-group me-2">
-                        <button type="button" class="btn btn-outline-primary dropdown-toggle" 
-                                data-bs-toggle="dropdown">
-                            Change Status
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><button type="submit" name="status" value="new" class="dropdown-item">New</button></li>
-                            <li><button type="submit" name="status" value="open" class="dropdown-item">Open</button></li>
-                            <li><button type="submit" name="status" value="stalled" class="dropdown-item">Stalled</button></li>
-                            <li><button type="submit" name="status" value="resolved" class="dropdown-item">Resolved</button></li>
-                        </ul>
-                    </div>
-                </form>
-            </div>
-            {% endif %}
         </div>
     </div>
     
