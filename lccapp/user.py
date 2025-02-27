@@ -393,6 +393,7 @@ def update_profile_image():
         flash('Invalid file type. Please upload an image file (PNG, JPG, JPEG, GIF).', 'warning')
     
     return redirect(url_for('profile'))
+
 @app.route('/change-password', methods=['POST'])
 def change_password():
     """Change user password."""
