@@ -257,6 +257,14 @@ def profile():
             FROM users WHERE user_id = %s
         ''', (session['user_id'],))
         profile = cursor.fetchone()
+        
+        # Debug output for profile image
+        if profile and profile['profile_image']:
+            image_path = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'], profile['profile_image'])
+            print(f"Profile image from DB: {profile['profile_image']}")
+            print(f"Full image path: {image_path}")
+            print(f"Image file exists: {os.path.exists(image_path)}")
+            print(f"Static URL: {url_for('static', filename='uploads/' + profile['profile_image'])}")
 
     return render_template('profile.html', profile=profile)
 
@@ -304,13 +312,18 @@ def update_profile_image():
         with db.get_cursor() as cursor:
             # Get current image filename
             cursor.execute('SELECT profile_image FROM users WHERE user_id = %s', (session['user_id'],))
-            current_image = cursor.fetchone()['profile_image']
+            result = cursor.fetchone()
+            current_image = result['profile_image'] if result else None
             
             # Remove file if it exists
             if current_image:
-                image_path = os.path.join(app.config['UPLOAD_FOLDER'], current_image)
-                if os.path.exists(image_path):
-                    os.remove(image_path)
+                image_path = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'], current_image)
+                try:
+                    if os.path.exists(image_path):
+                        os.remove(image_path)
+                        print(f"Removed image file: {image_path}")
+                except Exception as e:
+                    print(f"Error removing file: {str(e)}")
             
             # Update database
             cursor.execute('UPDATE users SET profile_image = NULL WHERE user_id = %s', (session['user_id'],))
@@ -320,46 +333,66 @@ def update_profile_image():
     
     # Handle file upload
     if 'profile_image' not in request.files:
-        flash('No file selected', 'error')
+        flash('No file selected', 'warning')
         return redirect(url_for('profile'))
     
     file = request.files['profile_image']
     if file.filename == '':
-        flash('No file selected', 'error')
+        flash('No file selected', 'warning')
         return redirect(url_for('profile'))
     
     if file and allowed_file(file.filename):
         # Generate secure filename
-        filename = secure_filename(f"{session['user_id']}_{int(time.time())}_{file.filename}")
+        filename = secure_filename(f"user_{session['user_id']}_{int(time.time())}_{file.filename}")
         
         # Ensure upload directory exists
-        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+        upload_dir = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'])
+        os.makedirs(upload_dir, exist_ok=True)
+        print(f"Upload directory: {upload_dir}")
         
         # Save file
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
+        file_path = os.path.join(upload_dir, filename)
+        try:
+            file.save(file_path)
+            print(f"Saved file to: {file_path}")
+            
+            # Check if file was saved successfully
+            if not os.path.exists(file_path):
+                flash('Error saving image file', 'danger')
+                return redirect(url_for('profile'))
+                
+        except Exception as e:
+            print(f"Error saving file: {str(e)}")
+            flash('Error saving image file', 'danger')
+            return redirect(url_for('profile'))
         
         # Update database with new filename
         with db.get_cursor() as cursor:
-            # Get and delete old image if exists
+            # Get old image if exists
             cursor.execute('SELECT profile_image FROM users WHERE user_id = %s', (session['user_id'],))
-            current_image = cursor.fetchone()['profile_image']
+            result = cursor.fetchone()
+            current_image = result['profile_image'] if result else None
             
+            # Remove old file if it exists and is different from the new one
             if current_image:
-                old_path = os.path.join(app.config['UPLOAD_FOLDER'], current_image)
-                if os.path.exists(old_path):
-                    os.remove(old_path)
+                old_path = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'], current_image)
+                try:
+                    if os.path.exists(old_path) and old_path != file_path:
+                        os.remove(old_path)
+                        print(f"Removed old image file: {old_path}")
+                except Exception as e:
+                    print(f"Error removing old file: {str(e)}")
             
-            # Update with new image
+            # Update with new image - only store the filename, not the full path
             cursor.execute('UPDATE users SET profile_image = %s WHERE user_id = %s', 
-                          (filename, session['user_id']))
+                         (filename, session['user_id']))
+            print(f"Updated database with new image: {filename}")
         
         flash('Profile image updated', 'success')
     else:
-        flash('Invalid file type. Please upload an image file.', 'error')
+        flash('Invalid file type. Please upload an image file (PNG, JPG, JPEG, GIF).', 'warning')
     
     return redirect(url_for('profile'))
-
 @app.route('/change-password', methods=['POST'])
 def change_password():
     """Change user password."""
