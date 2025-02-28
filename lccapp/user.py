@@ -151,6 +151,12 @@ def signup():
         username = request.form['username']
         email = request.form['email']
         password = request.form['password']
+        confirm_password = request.form.get('confirm_password', '')
+        
+        # Get the new required fields
+        first_name = request.form.get('first_name', '')
+        last_name = request.form.get('last_name', '')
+        location = request.form.get('location', '')
 
         # We start by assuming that everything is okay. If we encounter any
         # errors during validation, we'll store an error message in one or more
@@ -158,6 +164,10 @@ def signup():
         username_error = None
         email_error = None
         password_error = None
+        confirm_password_error = None
+        first_name_error = None
+        last_name_error = None
+        location_error = None
 
         # Check whether there's an account with this username in the database.
         with db.get_cursor() as cursor:
@@ -188,53 +198,72 @@ def signup():
         elif not re.match(r'[^@]+@[^@]+\.[^@]+', email):
             email_error = 'Invalid email address.'
                 
-        # Validate password. Think about what other constraints might be useful
-        # here for security (e.g. requiring a certain mix of character types,
-        # or avoiding overly-common passwords). Make sure that you clearly
-        # communicate any rules to the user, either through hints on the signup
-        # page or with clear error messages here.
-        #
-        # Note: Unlike the username and email address, we don't enforce a
-        # maximum password length. Because we'll be storing a hash of the
-        # password in our database, and not the password itself, it doesn't
-        # matter how long a password the user chooses. Whether it's 8 or 800
-        # characters, the hash will always be the same length.
+        # Enhanced password validation to check for strength requirements
         if len(password) < 8:
-            password_error = 'Please choose a longer password!'
+            password_error = 'Password must be at least 8 characters long.'
+        elif not re.search(r'[A-Za-z]', password):
+            password_error = 'Password must include at least one letter.'
+        elif not re.search(r'[0-9]', password):
+            password_error = 'Password must include at least one number.'
+        elif not re.search(r'[^A-Za-z0-9]', password):
+            password_error = 'Password must include at least one symbol.'
+        
+        # Check that passwords match
+        if password != confirm_password:
+            confirm_password_error = 'Passwords do not match.'
+        
+        # Validate required fields
+        if not first_name:
+            first_name_error = 'First name is required.'
+        if not last_name:
+            last_name_error = 'Last name is required.'
+        if not location:
+            location_error = 'Location is required.'
                 
-        if (username_error or email_error or password_error):
+        if (username_error or email_error or password_error or confirm_password_error or 
+            first_name_error or last_name_error or location_error):
             # One or more errors were encountered, so send the user back to the
             # signup page with their username and email address pre-populated.
             # For security reasons, we never send back the password they chose.
             return render_template('signup.html',
                                    username=username,
                                    email=email,
+                                   first_name=first_name,
+                                   last_name=last_name,
+                                   location=location,
                                    username_error=username_error,
                                    email_error=email_error,
-                                   password_error=password_error)
+                                   password_error=password_error,
+                                   confirm_password_error=confirm_password_error,
+                                   first_name_error=first_name_error,
+                                   last_name_error=last_name_error,
+                                   location_error=location_error)
         else:
             # The new account details are valid. Hash the user's new password
             # and create their account in the database.
             password_hash = flask_bcrypt.generate_password_hash(password)
             
-            # Note: In this example, we just assume the SQL INSERT statement
-            # below will run successfully. But what if it doesn't?
-            #
-            # If the INSERT fails for any reason, MySQL Connector will throw an
-            # exception and the user will receive a generic error page. We
-            # should implement our own error handling here to deal with that
-            # possibility, and display a more useful message to the user.
-            with db.get_cursor() as cursor:
-                cursor.execute('''
-                               INSERT INTO users (username, password_hash, email, role)
-                               VALUES (%s, %s, %s, %s);
-                               ''',
-                               (username, password_hash, email, DEFAULT_USER_ROLE,))
-            
-            # Now that registration is complete, send the user back to the
-            # signup page. We set the `signup_successful` flag to display a
-            # post-signup message.
-            return render_template('signup.html', signup_successful=True)            
+            try:
+                with db.get_cursor() as cursor:
+                    cursor.execute('''
+                                   INSERT INTO users (username, password_hash, email, role, first_name, last_name, location)
+                                   VALUES (%s, %s, %s, %s, %s, %s, %s);
+                                   ''',
+                                   (username, password_hash, email, DEFAULT_USER_ROLE, first_name, last_name, location))
+                
+                # Return to signup page with successful registration indicator
+                return render_template('signup.html', signup_successful=True)
+                
+            except Exception as e:
+                # Handle database errors
+                password_error = f'Registration failed: {str(e)}'
+                return render_template('signup.html',
+                                      username=username,
+                                      email=email,
+                                      first_name=first_name,
+                                      last_name=last_name,
+                                      location=location,
+                                      password_error=password_error)
 
     # This was a GET request, or an invalid POST (no username, email, and/or
     # password). Render the signup page with no pre-populated form fields or
