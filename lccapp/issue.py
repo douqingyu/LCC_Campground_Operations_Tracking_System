@@ -10,6 +10,21 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def user_home_url():
+    """Generates a URL to the homepage for the currently logged-in user."""
+    role = session.get('role', None)
+
+    if role == 'visitor':  
+        home_endpoint = 'visitor_home'
+    elif role == 'helper':  
+        home_endpoint = 'helper_home'
+    elif role == 'admin':
+        home_endpoint = 'admin_home'
+    else:
+        home_endpoint = 'login'
+    
+    return url_for(home_endpoint)
+
 @app.route('/issue/<int:issue_id>')
 @login_required
 def view_issue(issue_id):
@@ -88,3 +103,68 @@ def add_comment(issue_id):
     
     flash('Comment added successfully', 'success')
     return redirect(url_for('view_issue', issue_id=issue_id))
+
+@app.route('/report', methods=['GET', 'POST'])
+@login_required
+def report_issue():
+    """Report a new issue.
+    
+    This endpoint is accessible to all authenticated users regardless of their role.
+    All issues must have a brief summary and a longer description.
+    Issues always begin in 'new' status.
+    """
+    if request.method == 'POST':
+        summary = request.form.get('summary')
+        description = request.form.get('description')
+        
+        if not summary or not description:
+            flash('Please provide both summary and description', 'danger')
+            return render_template('report_issue.html')
+        
+        with db.get_cursor() as cursor:
+            cursor.execute('''
+                INSERT INTO issues (user_id, summary, description, status, created_at)
+                VALUES (%s, %s, %s, 'new', NOW())
+            ''', (session['user_id'], summary, description))
+        
+        flash('Issue reported successfully', 'success')
+        
+        # Redirect to the appropriate home page based on role
+        return redirect(user_home_url())
+        
+    return render_template('report_issue.html')
+
+@app.route('/resolved-issues')
+@login_required
+def resolved_issues():
+    """View all resolved issues.
+    
+    This endpoint is restricted to helper and admin roles.
+    """
+    # Only allow helpers and admins to view resolved issues
+    if session['role'] not in ['helper', 'admin']:
+        flash('Access denied. You do not have permission to view resolved issues.', 'danger')
+        return redirect(user_home_url())
+    
+    with db.get_cursor() as cursor:
+        # Get resolved issues
+        cursor.execute('''
+            SELECT i.*, u.username, u.profile_image,
+                  (SELECT COUNT(*) FROM comments WHERE issue_id = i.issue_id) AS comment_count
+            FROM issues i
+            JOIN users u ON i.user_id = u.user_id
+            WHERE i.status = 'resolved'
+            ORDER BY i.created_at DESC
+        ''')
+        resolved_issues = cursor.fetchall()
+        
+        # Add status colors for easier display
+        for issue in resolved_issues:
+            issue['status_color'] = {
+                'new': 'danger',
+                'open': 'primary',
+                'stalled': 'warning',
+                'resolved': 'success'
+            }.get(issue['status'], 'secondary')
+    
+    return render_template('resolved_issues.html', resolved_issues=resolved_issues)
