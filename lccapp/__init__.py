@@ -1,43 +1,41 @@
-# This script runs automatically when our `lccapp` module is first loaded,
-# and handles all the setup for our Flask app.
+# Main initialization file for the 'lccapp' module
+# Automatically executes when imported
+
 from flask import Flask
 from flask_bcrypt import Bcrypt
 import os
 
-# Initialize Flask app
+# Create Flask app
 app = Flask(__name__)
 
-# Set session key for user login and role tracking
-app.secret_key = 'your-secret-key-here'
+# Set secret key for sessions
+app.secret_key = 'e7a8f52c40b96d7e28c612f8a159dd307f18e90a42c16b87dfc9846a'
 
-# Initialize Bcrypt for password hashing
-bcrypt = Bcrypt(app)
-
-# Set up database connection
-from lccapp import connect
-from lccapp import db
-db.init_db(app, connect.dbuser, connect.dbpass, connect.dbhost, connect.dbname)
-
-# Import all modules that define our Flask route-handling functions
-from lccapp import (user, visitor, helper, admin, issue, profile)
-# 在__init__.py文件中更新配置
-import os
-
-# 确保应用的根目录下有static/uploads目录
-upload_folder = os.path.join('static', 'uploads')
+# Configure static and upload folders
 static_folder = 'static'
+upload_folder = os.path.join('static', 'uploads')
 
-# 配置应用
+# Set app configuration
 app.static_folder = static_folder
 app.config.update(
     UPLOAD_FOLDER=upload_folder,
     ALLOWED_EXTENSIONS={'png', 'jpg', 'jpeg', 'gif'}
 )
 
-# 创建上传目录（如果不存在）
+# Create upload directory if needed
 os.makedirs(os.path.join(app.root_path, upload_folder), exist_ok=True)
 print(f"Upload directory: {os.path.join(app.root_path, upload_folder)}")
 
+# Initialize Bcrypt for password hashing
+bcrypt = Bcrypt(app)
+
+# Set up database
+from lccapp import connect
+from lccapp import db
+db.init_db(app, connect.dbuser, connect.dbpass, connect.dbhost, connect.dbname)
+
+# Import route modules
+from lccapp import (user, visitor, helper, admin, issue, profile)
 
 
 

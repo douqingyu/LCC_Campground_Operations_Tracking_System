@@ -15,10 +15,10 @@ def admin_required(f):
 @app.route('/admin/home')
 @admin_required
 def admin_home():
-    """Admin Homepage endpoint."""
+    """Admin dashboard with issue statistics and active issues."""
     # Get issue statistics
     with db.get_cursor() as cursor:
-        # Get counts for each status
+        # Count issues by status
         cursor.execute('''
             SELECT status, COUNT(*) as count
             FROM issues
@@ -26,7 +26,7 @@ def admin_home():
         ''')
         status_results = cursor.fetchall()
         
-        # Convert to dictionary
+        # Initialize status counts
         status_counts = {
             'new': 0,
             'open': 0,
@@ -37,7 +37,7 @@ def admin_home():
             if row['status'] in status_counts:
                 status_counts[row['status']] = row['count']
         
-        # Get active issues with creator info
+        # Fetch active issues with user info
         cursor.execute('''
             SELECT i.*, u.username, u.profile_image
             FROM issues i
@@ -53,7 +53,7 @@ def admin_home():
         ''')
         active_issues = cursor.fetchall()
         
-        # Add status colors for easier display
+        # Add color codes for status display
         for issue in active_issues:
             issue['status_color'] = {
                 'new': 'danger',
@@ -72,7 +72,7 @@ def admin_home():
 @app.route('/admin/users', methods=['GET'])
 @admin_required
 def manage_users():
-    """User management page."""
+    """User management with optional search functionality."""
     search = request.args.get('search', '')
     
     with db.get_cursor() as cursor:
@@ -87,7 +87,7 @@ def manage_users():
             cursor.execute('SELECT * FROM users')
         users = cursor.fetchall()
         
-        # 获取问题统计数据（与admin_home相同的查询）
+        # Get issue statistics (same query as admin_home)
         cursor.execute('''
             SELECT status, COUNT(*) as count
             FROM issues
@@ -117,7 +117,7 @@ def manage_users():
 @app.route('/admin/users/<int:user_id>/status', methods=['POST'])
 @admin_required
 def change_user_status(user_id):
-    """Change user's active/inactive status"""
+    """Toggle user active/inactive status."""
     new_status = request.form.get('status')
     if new_status not in ['active', 'inactive']:
         flash('Invalid status value', 'error')
@@ -136,7 +136,7 @@ def change_user_status(user_id):
 @app.route('/admin/users/<int:user_id>/role', methods=['POST'])
 @admin_required
 def change_user_role(user_id):
-    """Change user's role"""
+    """Update user permission role."""
     new_role = request.form.get('role')
     if new_role not in ['visitor', 'helper', 'admin']:
         flash('Invalid role value', 'error')
@@ -155,7 +155,7 @@ def change_user_role(user_id):
 @app.route('/admin/issue/<int:issue_id>/status', methods=['POST'])
 @admin_required
 def change_issue_status(issue_id):
-    """Change issue status"""
+    """Update issue workflow status."""
     new_status = request.form.get('status')
     if new_status not in ['new', 'open', 'stalled', 'resolved']:
         flash('Invalid status value', 'error')

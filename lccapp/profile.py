@@ -8,11 +8,11 @@ import time
 from werkzeug.utils import secure_filename
 from functools import wraps
 
-# Create an instance of the Bcrypt class for password hashing
+# Bcrypt instance for password hashing
 flask_bcrypt = Bcrypt(app)
 
 def login_required(f):
-    """Decorator to ensure user is logged in before accessing a route."""
+    """Restrict route access to logged-in users only."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'loggedin' not in session:
@@ -23,11 +23,8 @@ def login_required(f):
 @app.route('/profile')
 @login_required
 def profile():
-    """User Profile page endpoint.
-
-    Shows the user's profile information and allows them to edit it.
-    """
-    # Retrieve user profile from the database.
+    """Display user profile information."""
+    # Get user data from database
     with db.get_cursor() as cursor:
         cursor.execute('''
             SELECT username, email, first_name, last_name, location, role, profile_image 
@@ -35,7 +32,7 @@ def profile():
         ''', (session['user_id'],))
         profile = cursor.fetchone()
         
-        # Debug output for profile image
+        # Log profile image details for debugging
         if profile and profile['profile_image']:
             image_path = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'], profile['profile_image'])
             print(f"Profile image from DB: {profile['profile_image']}")
@@ -48,7 +45,7 @@ def profile():
 @app.route('/update-profile', methods=['POST'])
 @login_required
 def update_profile():
-    """Update user profile details."""
+    """Save changes to user profile information."""
     email = request.form.get('email')
     first_name = request.form.get('first_name')
     last_name = request.form.get('last_name')
@@ -65,7 +62,7 @@ def update_profile():
                                      'role': session['role']},
                              email_error='Invalid email format')
     
-    # Update user profile in database
+    # Save updated profile to database
     with db.get_cursor() as cursor:
         cursor.execute('''
             UPDATE users 
@@ -79,8 +76,8 @@ def update_profile():
 @app.route('/update-profile-image', methods=['POST'])
 @login_required
 def update_profile_image():
-    """Update or remove user profile image."""
-    # Check if user wants to remove their profile image
+    """Handle profile image upload or removal."""
+    # Process image removal request
     if 'remove_image' in request.form:
         with db.get_cursor() as cursor:
             # Get current image filename
@@ -88,7 +85,7 @@ def update_profile_image():
             result = cursor.fetchone()
             current_image = result['profile_image'] if result else None
             
-            # Remove file if it exists
+            # Delete image file if it exists
             if current_image:
                 image_path = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'], current_image)
                 try:
@@ -98,13 +95,13 @@ def update_profile_image():
                 except Exception as e:
                     print(f"Error removing file: {str(e)}")
             
-            # Update database
+            # Clear image reference in database
             cursor.execute('UPDATE users SET profile_image = NULL WHERE user_id = %s', (session['user_id'],))
         
         flash('Profile image removed', 'success')
         return redirect(url_for('profile'))
     
-    # Handle file upload
+    # Validate file upload
     if 'profile_image' not in request.files:
         flash('No file selected', 'warning')
         return redirect(url_for('profile'))
@@ -115,7 +112,7 @@ def update_profile_image():
         return redirect(url_for('profile'))
     
     if file and allowed_file(file.filename):
-        # Generate secure filename
+        # Create unique filename
         filename = secure_filename(f"user_{session['user_id']}_{int(time.time())}_{file.filename}")
         
         # Ensure upload directory exists
@@ -123,13 +120,13 @@ def update_profile_image():
         os.makedirs(upload_dir, exist_ok=True)
         print(f"Upload directory: {upload_dir}")
         
-        # Save file
+        # Save uploaded file
         file_path = os.path.join(upload_dir, filename)
         try:
             file.save(file_path)
             print(f"Saved file to: {file_path}")
             
-            # Check if file was saved successfully
+            # Verify file was saved
             if not os.path.exists(file_path):
                 flash('Error saving image file', 'danger')
                 return redirect(url_for('profile'))
@@ -139,14 +136,14 @@ def update_profile_image():
             flash('Error saving image file', 'danger')
             return redirect(url_for('profile'))
         
-        # Update database with new filename
+        # Update database with new image
         with db.get_cursor() as cursor:
-            # Get old image if exists
+            # Get previous image if exists
             cursor.execute('SELECT profile_image FROM users WHERE user_id = %s', (session['user_id'],))
             result = cursor.fetchone()
             current_image = result['profile_image'] if result else None
             
-            # Remove old file if it exists and is different from the new one
+            # Remove previous image file
             if current_image:
                 old_path = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'], current_image)
                 try:
@@ -156,7 +153,7 @@ def update_profile_image():
                 except Exception as e:
                     print(f"Error removing old file: {str(e)}")
             
-            # Update with new image - only store the filename, not the full path
+            # Update database with new filename
             cursor.execute('UPDATE users SET profile_image = %s WHERE user_id = %s', 
                          (filename, session['user_id']))
             print(f"Updated database with new image: {filename}")
@@ -170,37 +167,35 @@ def update_profile_image():
 @app.route('/change-password', methods=['POST'])
 @login_required
 def change_password():
-    """Change user password."""
+    """Update user password with validation checks."""
     current_password = request.form.get('current_password')
     new_password = request.form.get('new_password')
     confirm_password = request.form.get('confirm_password')
     
-    # Retrieve current user info
+    # Get current password hash
     with db.get_cursor() as cursor:
         cursor.execute('SELECT * FROM users WHERE user_id = %s', (session['user_id'],))
         user = cursor.fetchone()
     
-    # Check if current password matches
+    # Validate current password
     if not flask_bcrypt.check_password_hash(user['password_hash'], current_password):
         flash('Current password is incorrect', 'danger')
         return redirect(url_for('profile'))
     
-    # Check if new password meets requirements
+    # Password validation checks
     if len(new_password) < 8:
         flash('New password must be at least 8 characters long', 'danger')
         return redirect(url_for('profile'))
     
-    # Check if passwords match
     if new_password != confirm_password:
         flash('New passwords do not match', 'danger')
         return redirect(url_for('profile'))
     
-    # Check if new password is different from current
     if current_password == new_password:
         flash('New password must be different from current password', 'danger')
         return redirect(url_for('profile'))
     
-    # Hash new password and update
+    # Update password in database
     password_hash = flask_bcrypt.generate_password_hash(new_password)
     with db.get_cursor() as cursor:
         cursor.execute('UPDATE users SET password_hash = %s WHERE user_id = %s', 
@@ -209,8 +204,7 @@ def change_password():
     flash('Password changed successfully', 'success')
     return redirect(url_for('profile'))
 
-# Helper function for file uploads
 def allowed_file(filename):
-    """Check if the file has an allowed extension."""
+    """Check if uploaded file has an allowed extension."""
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']

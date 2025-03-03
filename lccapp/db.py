@@ -1,74 +1,36 @@
-"""Implements simple MySQL database connectivity for a Flask web app.
+"""MySQL database connectivity for Flask web applications.
 
-This approach is based on the "Define and Access the Database" Flask
-tutorial [1], adapted to use MySQL with connection pooling. It gives you an
-easy way to request a database connection or cursor while processing a Flask
-request, and gives you access to that connection from anywhere in your app
-(including other functions or modules) until the request is complete.
+Provides database connection handling for Flask requests based on the Flask tutorial pattern.
+Uses mysqlclient package which is compatible with Windows 10/11 and PythonAnywhere.
 
-Usage:
-------
-When initialising your Flask application, call `init_db` passing in your
-`Flask` application object and database connection details:
-```
->>> app = Flask(__name__)
->>> db.init_db(app, 'username', 'password', 'host', 'database')
-```
+Basic usage:
+1. Initialize: db.init_db(app, 'username', 'password', 'host', 'database')
+2. Get connection: db = db.get_db()
+3. Get cursor: cursor = db.get_cursor() or with get_cursor() as cursor: ...
 
-Then, while handling a Flask request you can get a database connection
-specific to that request by calling:
-```
->>> db = db.get_db()
->>> # Your database code here...
-```
-
-If you need a new cursor, you can call:
-```
->>> cursor = db.get_cursor()
->>> # Your database code here...
->>> cursor.close()
-```
-
-Alternatively, consider using a `with` block to ensure that the cursor is
-automatically closed at the end of your query:
-```
->>> with get_cursor() as cursor:
->>>     # Your query here...
-```
-
-Note that you don't have to close the database connection returned by
-`get_db()` as it will be closed automatically at the end of the Flask request.
-However, you should ensure that you close all cursors: this includes any
-created by the `get_cursor()` function, and any you create manually using the
-database connection.
-
-References:
------------
-    [1] https://flask.palletsprojects.com/en/stable/tutorial/database/
+Database connections are automatically closed at the end of requests.
+Remember to close any cursors you create.
 """
 from flask import Flask, g
 from mysql.connector.pooling import MySQLConnectionPool
 
-# Pool of reusable database connections (created when calling `init_db`).
+# Connection pool (created by init_db)
 connection_pool: MySQLConnectionPool
 
 def init_db(app: Flask, user: str, password: str, host: str, database: str,
             pool_name: str = "flask_db_pool", autocommit: bool = True):
-    """Sets up a MySQL connection pool for the specified Flask app.
-
-    This must be called once while initialising your Flask web app, before any
-    other `db` module functions are called.
-
+    """Set up MySQL connection pool for a Flask app.
+    
     Args:
-        app: The `Flask` application to set up database connectivity for.
-        user: Username used to connect to the MySQL server.
-        password: Password used to connect to the MySQL server.
-        host: Host name or IP address of the MySQL server.
-        database: Name of the database to connect to on the MySQL server.
-        pool_name: Name of the pool to create (default `flask_db_pool`).
-        autocommit: Whether or not to enable auto-commit (default `True`) .
+        app: Flask application
+        user: MySQL username
+        password: MySQL password
+        host: MySQL server host
+        database: Database name
+        pool_name: Connection pool name
+        autocommit: Whether to enable auto-commit
     """
-    # Create a pool of reusable database connections.
+    # Create connection pool
     global connection_pool
     connection_pool = MySQLConnectionPool(
         user=user,
@@ -78,30 +40,17 @@ def init_db(app: Flask, user: str, password: str, host: str, database: str,
         pool_name=pool_name,
         autocommit=autocommit)
 
-    # Register `close_db()` to run every time the application context is torn
-    # down at the end of a Flask request, ensuring that any database connection
-    # using during that request gets released back into the pool.
+    # Register cleanup function to run after each request
     app.teardown_appcontext(close_db)
 
 def get_db():
-    """Gets a MySQL database connection to use while serving the current Flask
-    request.
-
-    The first time you call this during a request, a new connection will be
-    allocated from the pool. After that, any additional calls to `get_db()`
-    during the same request are guaranteed to return the same connection.
+    """Get a MySQL connection for the current Flask request.
     
-    If you only need a MySQL cursor, and not a reference to the database, you
-    can just call the `get_cursor()` function. There's no need to call
-    `get_db()` first.
-
-    You don't need to manually close the connection returned by `get_db()` - it
-    will be returned to the pool automatically at the end of the Flask request.
-    However, you should be sure to close any cursors that you create, including
-    any created by the `get_cursor()` function.
-
+    Returns the same connection if called multiple times in one request.
+    Connection is automatically returned to the pool after the request.
+    
     Returns:
-        A `PooledMySQLConnection` instance.
+        A database connection from the pool
     """
     if 'db' not in g:
         g.db = connection_pool.get_connection()
@@ -109,34 +58,25 @@ def get_db():
     return g.db
 
 def get_cursor():
-    """Gets a new MySQL dictionary cursor to use while serving the current
-    Flask request.
+    """Get a new MySQL dictionary cursor for the current request.
     
-    All cursors created by this function during a single Flask request will
-    belong to the same connection. You can get a reference to that connection
-    at any time during the request by calling `get_db()`.
-    
-    Ensure that you close all cursors before the end of the Flask request.
+    All cursors from this function share the same connection.
+    Always close these cursors when finished.
     
     Returns:
-        A new `MySQLCursor` instance.
+        A new MySQL cursor with dictionary result format
     """
     return get_db().cursor(dictionary=True)
 
 def close_db(exception = None):
-    """Closes the MySQL database connection associated with the current Flask
-    request (if any).
+    """Close the current request's database connection.
     
-    There should be no need to call this manually: this function is called
-    automatically when the application context is torn down at the end of each
-    Flask request.
-
+    Called automatically at the end of each Flask request.
+    
     Args:
-        exception: The exception that terminated the Flask request, or `None`
-            if the request terminated successfully.
+        exception: Exception that ended the request (if any)
     """
-    # Get the database connection from the current application context (the one
-    # that's being torn down), or `None` if there is no connection.
+    # Get and remove db from application context
     db = g.pop('db', None)
     
     if db is not None:

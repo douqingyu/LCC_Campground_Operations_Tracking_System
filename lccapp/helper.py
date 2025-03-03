@@ -15,13 +15,10 @@ def helper_required(f):
 @app.route('/helper/home')
 @helper_required
 def helper_home():
-    """Helper Homepage endpoint.
-    
-    Shows active issues requiring attention.
-    """
+    """Dashboard for helpers showing active issues that need attention."""
     # Get issue statistics
     with db.get_cursor() as cursor:
-        # Get counts for each status
+        # Count issues by status
         cursor.execute('''
             SELECT status, COUNT(*) as count
             FROM issues
@@ -29,7 +26,7 @@ def helper_home():
         ''')
         status_results = cursor.fetchall()
         
-        # Convert to dictionary
+        # Initialize status counts
         status_counts = {
             'new': 0,
             'open': 0,
@@ -40,7 +37,7 @@ def helper_home():
             if row['status'] in status_counts:
                 status_counts[row['status']] = row['count']
         
-        # Get active issues with creator info
+        # Fetch active issues with user details
         cursor.execute('''
             SELECT i.*, u.username, u.profile_image
             FROM issues i
@@ -56,7 +53,7 @@ def helper_home():
         ''')
         active_issues = cursor.fetchall()
         
-        # Add status colors for easier display
+        # Add color codes for status display
         for issue in active_issues:
             issue['status_color'] = {
                 'new': 'danger',
@@ -75,7 +72,7 @@ def helper_home():
 @app.route('/helper/issue/<int:issue_id>/status', methods=['POST'])
 @helper_required
 def helper_change_issue_status(issue_id):
-    """Change issue status"""
+    """Update an issue's workflow status."""
     new_status = request.form.get('status')
     if new_status not in ['new', 'open', 'stalled', 'resolved']:
         flash('Invalid status value', 'error')

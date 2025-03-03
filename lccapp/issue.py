@@ -11,7 +11,7 @@ def login_required(f):
     return decorated_function
 
 def user_home_url():
-    """Generates a URL to the homepage for the currently logged-in user."""
+    """Returns the appropriate homepage URL based on user role."""
     role = session.get('role', None)
 
     if role == 'visitor':  
@@ -28,12 +28,9 @@ def user_home_url():
 @app.route('/issue/<int:issue_id>')
 @login_required
 def view_issue(issue_id):
-    """View a specific issue and its comments.
-    
-    All users can view issues, but visitors can only view their own issues.
-    """
+    """Display issue details and comments. Visitors can only view their own issues."""
     with db.get_cursor() as cursor:
-        # Get issue details
+        # Fetch issue with creator details
         cursor.execute('''
             SELECT i.*, u.username, u.role, u.profile_image
             FROM issues i
@@ -46,11 +43,11 @@ def view_issue(issue_id):
             flash('Issue not found', 'error')
             return redirect(url_for('admin_home' if session['role'] == 'admin' else 'visitor_home'))
         
-        # Check permission - visitors can only view their own issues
+        # Permission check
         if session['role'] == 'visitor' and issue['user_id'] != session['user_id']:
             return render_template('access_denied.html'), 403
         
-        # Get comments for this issue
+        # Fetch all comments
         cursor.execute('''
             SELECT c.*, u.username, u.role, u.profile_image
             FROM comments c
@@ -69,17 +66,14 @@ def view_issue(issue_id):
 @app.route('/issue/<int:issue_id>/comment', methods=['POST'])
 @login_required
 def add_comment(issue_id):
-    """Add a comment to an issue.
-    
-    All users can comment on issues they reported themselves.
-    """
+    """Add a comment to an issue. Staff commenting on new/stalled/resolved issues reopens them."""
     content = request.form.get('content')
     if not content:
         flash('Comment cannot be empty', 'error')
         return redirect(url_for('view_issue', issue_id=issue_id))
     
     with db.get_cursor() as cursor:
-        # Get the issue to check permission
+        # Verify issue exists
         cursor.execute('SELECT * FROM issues WHERE issue_id = %s', (issue_id,))
         issue = cursor.fetchone()
         
@@ -87,19 +81,27 @@ def add_comment(issue_id):
             flash('Issue not found', 'error')
             return redirect(url_for('admin_home' if session['role'] == 'admin' else 'visitor_home'))
         
-        # Check permission - visitors can only comment on their own issues
-        # Allow all users to comment on issues they reported themselves
+        # Permission check
         is_reporter = issue['user_id'] == session['user_id']
         is_staff = session['role'] in ['helper', 'admin']
         
         if not is_reporter and not is_staff:
             return render_template('access_denied.html'), 403
         
-        # Add the comment
+        # Save the comment
         cursor.execute('''
             INSERT INTO comments (issue_id, user_id, content, created_at)
             VALUES (%s, %s, %s, NOW())
         ''', (issue_id, session['user_id'], content))
+        
+        # Auto-reopen if staff comments on non-open issue
+        if is_staff and issue['status'] in ['new', 'stalled', 'resolved']:
+            cursor.execute('''
+                UPDATE issues 
+                SET status = 'open' 
+                WHERE issue_id = %s
+            ''', (issue_id,))
+            flash('Issue status changed to open', 'info')
     
     flash('Comment added successfully', 'success')
     return redirect(url_for('view_issue', issue_id=issue_id))
@@ -107,12 +109,7 @@ def add_comment(issue_id):
 @app.route('/report', methods=['GET', 'POST'])
 @login_required
 def report_issue():
-    """Report a new issue.
-    
-    This endpoint is accessible to all authenticated users regardless of their role.
-    All issues must have a brief summary and a longer description.
-    Issues always begin in 'new' status.
-    """
+    """Submit a new issue. Available to all users. Issues start with 'new' status."""
     if request.method == 'POST':
         summary = request.form.get('summary')
         description = request.form.get('description')
@@ -129,7 +126,7 @@ def report_issue():
         
         flash('Issue reported successfully', 'success')
         
-        # Redirect to the appropriate home page based on role
+        # Redirect to role-appropriate homepage
         return redirect(user_home_url())
         
     return render_template('report_issue.html')
@@ -137,17 +134,14 @@ def report_issue():
 @app.route('/resolved-issues')
 @login_required
 def resolved_issues():
-    """View all resolved issues.
-    
-    This endpoint is restricted to helper and admin roles.
-    """
-    # Only allow helpers and admins to view resolved issues
+    """Display all resolved issues. Restricted to helper and admin roles."""
+    # Permission check
     if session['role'] not in ['helper', 'admin']:
         flash('Access denied. You do not have permission to view resolved issues.', 'danger')
         return redirect(user_home_url())
     
     with db.get_cursor() as cursor:
-        # Get resolved issues
+        # Fetch resolved issues with comment counts
         cursor.execute('''
             SELECT i.*, u.username, u.profile_image,
                   (SELECT COUNT(*) FROM comments WHERE issue_id = i.issue_id) AS comment_count
@@ -158,7 +152,7 @@ def resolved_issues():
         ''')
         resolved_issues = cursor.fetchall()
         
-        # Add status colors for easier display
+        # Add status styling
         for issue in resolved_issues:
             issue['status_color'] = {
                 'new': 'danger',

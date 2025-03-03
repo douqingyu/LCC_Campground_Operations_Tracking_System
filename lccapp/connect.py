@@ -28,8 +28,8 @@ On PythonAnywhere:
     your database "loginexample" then your full database name will be
     "user1234$loginexample".
 """
-dbuser = "root" #PUT YOUR MySQL username here
-dbpass = "7525" #PUT YOUR PASSWORD HERE - make sure this matches db password set in PA.
-dbhost = "localhost" 
-dbport = "3306"     # Same in local and PA version
+dbuser = "root"
+dbpass = "7525"
+dbhost = "localhost"
+dbport = "3306"
 dbname = "lcc"
