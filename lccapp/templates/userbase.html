@@ -19,25 +19,25 @@
             <div class="collapse navbar-collapse" id="navbarContent">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link{{' active' if active_page=='home' else ''}}" 
+                        <a class="nav-link" 
                            href="{% if session['role'] == 'visitor' %}{{ url_for('visitor_home') }}
                                  {% elif session['role'] == 'helper' %}{{ url_for('helper_home') }}
                                  {% elif session['role'] == 'admin' %}{{ url_for('admin_home') }}{% endif %}">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link{{' active' if active_page=='report_issue' else ''}}" 
+                        <a class="nav-link" 
                            href="{{ url_for('report_issue') }}">Report a New Issue</a>
                     </li>
                     {% if session['role'] in ['helper', 'admin'] %}
                     <li class="nav-item">
-                        <a class="nav-link{{' active' if active_page=='resolved_issues' else ''}}" 
+                        <a class="nav-link" 
                            href="{{ url_for('resolved_issues') }}">View Resolved Issues</a>
                     </li>
                     {% endif %}
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link{{' active' if active_page=='profile' else ''}}" 
+                        <a class="nav-link" 
                            href="{{ url_for('profile') }}">Profile</a>
                     </li>
                     <li class="nav-item">

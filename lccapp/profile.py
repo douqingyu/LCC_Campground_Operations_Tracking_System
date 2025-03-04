@@ -164,6 +164,30 @@ def update_profile_image():
     
     return redirect(url_for('profile'))
 
+def validate_password(password):
+    """
+    Validate password meets all requirements:
+    - At least 8 characters long
+    - Contains at least one letter
+    - Contains at least one number
+    - Contains at least one symbol
+    
+    Returns tuple (is_valid, error_message)
+    """
+    if len(password) < 8:
+        return False, 'Password must be at least 8 characters long'
+    
+    if not re.search(r'[a-zA-Z]', password):
+        return False, 'Password must include at least one letter'
+    
+    if not re.search(r'\d', password):
+        return False, 'Password must include at least one number'
+    
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+        return False, 'Password must include at least one symbol (e.g., !@#$%^&*)'
+    
+    return True, ''
+
 @app.route('/change-password', methods=['POST'])
 @login_required
 def change_password():
@@ -182,17 +206,20 @@ def change_password():
         flash('Current password is incorrect', 'danger')
         return redirect(url_for('profile'))
     
-    # Password validation checks
-    if len(new_password) < 8:
-        flash('New password must be at least 8 characters long', 'danger')
+    # Check if new password is different from current
+    if current_password == new_password:
+        flash('New password must be different from current password', 'danger')
         return redirect(url_for('profile'))
     
+    # Check if passwords match
     if new_password != confirm_password:
         flash('New passwords do not match', 'danger')
         return redirect(url_for('profile'))
     
-    if current_password == new_password:
-        flash('New password must be different from current password', 'danger')
+    # Validate password strength
+    is_valid, error_message = validate_password(new_password)
+    if not is_valid:
+        flash(error_message, 'danger')
         return redirect(url_for('profile'))
     
     # Update password in database

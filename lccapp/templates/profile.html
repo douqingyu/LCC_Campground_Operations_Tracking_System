@@ -90,7 +90,15 @@
                             <label for="new_password" class="form-label">New Password</label>
                             <input type="password" class="form-control {% if new_password_error %}is-invalid{% endif %}" 
                                    id="new_password" name="new_password" required>
-                            <div class="form-text">Password must be at least 8 characters long with a mix of character types</div>
+                            <div class="form-text">
+                                <i class="bi bi-info-circle"></i> Password requirements:
+                                <ul class="mt-1 mb-0">
+                                    <li>At least 8 characters long</li>
+                                    <li>Must include at least one letter</li>
+                                    <li>Must include at least one number</li>
+                                    <li>Must include at least one symbol (e.g., !@#$%^&*)</li>
+                                </ul>
+                            </div>
                             {% if new_password_error %}
                             <div class="invalid-feedback">{{ new_password_error }}</div>
                             {% endif %}
