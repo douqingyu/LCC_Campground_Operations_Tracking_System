@@ -5,57 +5,68 @@
 {% set active_page = 'resolved' %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1>Resolved Issues</h1>
-            <p class="text-muted">View all issues that have been successfully resolved</p>
-        </div>
-    </div> 
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h2 class="h5 mb-0">Resolved Issues</h2>
-        </div>
-        <div class="card-body">
-            {% if resolved_issues %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Status</th>
-                            <th>Summary</th>
-                            <th>Reporter</th>
-                            <th>Created</th>
-                            <th>Comments</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for issue in resolved_issues %}
-                        <tr>
-                            <td>
-                                <span class="badge bg-{{ issue.status_color }}">
-                                    {{ issue.status }}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="h2">Resolved Issues</h1>
+        <p class="text-muted">View all issues that have been successfully resolved</p>
+    </div>
+</div> 
+<div class="card shadow-sm">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <h2 class="h5 mb-0">Resolved Issues</h2>
+    </div>
+    <div class="card-body">
+        {% if resolved_issues %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Status</th>
+                        <th>Summary</th>
+                        <th class="d-none d-md-table-cell">Reporter</th>
+                        <th class="d-none d-md-table-cell">Created</th>
+                        <th class="d-none d-md-table-cell">Comments</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for issue in resolved_issues %}
+                    <tr>
+                        <td>
+                            <span class="badge bg-{{ issue.status_color }}">
+                                {{ issue.status }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="d-inline-block text-truncate" style="max-width: 200px;">
+                                {{ issue.summary }}
+                            </span>
+                            <!-- Show date and reporter on mobile -->
+                            <div class="d-md-none small text-muted mt-1">
+                                <span>{{ issue.created_at.strftime('%Y-%m-%d') }}</span>
+                                <span class="ms-2">
+                                    <i class="bi bi-chat-dots"></i> {{ issue.comment_count }}
                                 </span>
-                            </td>
-                            <td>{{ issue.summary }}</td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    {% if issue.profile_image %}
-                                    <img src="{{ url_for('static', filename='uploads/' + issue.profile_image) }}" 
-                                         class="rounded-circle me-2" width="32" height="32" alt="Profile">
-                                    {% else %}
-                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" 
-                                         style="width: 32px; height: 32px;">
-                                        <span class="small text-white">{{ issue.username[0]|upper }}</span>
-                                    </div>
-                                    {% endif %}
-                                    {{ issue.username }}
+                            </div>
+                        </td>
+                        <td class="d-none d-md-table-cell">
+                            <div class="d-flex align-items-center">
+                                {% if issue.profile_image %}
+                                <img src="{{ url_for('static', filename='uploads/' + issue.profile_image) }}" 
+                                     class="rounded-circle me-2" width="32" height="32" alt="Profile">
+                                {% else %}
+                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" 
+                                     style="width: 32px; height: 32px;">
+                                    <span class="small text-white">{{ issue.username[0]|upper }}</span>
                                 </div>
-                            </td>
-                            <td>{{ issue.created_at.strftime('%Y-%m-%d') }}</td>
-                            <td>{{ issue.comment_count }}</td>
-                            <td>
+                                {% endif %}
+                                {{ issue.username }}
+                            </div>
+                        </td>
+                        <td class="d-none d-md-table-cell">{{ issue.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td class="d-none d-md-table-cell">{{ issue.comment_count }}</td>
+                        <td>
+                            <div class="d-flex gap-1 flex-wrap">
                                 <a href="{{ url_for('view_issue', issue_id=issue.issue_id) }}" 
                                    class="btn btn-sm btn-outline-secondary">View</a>
                                    
@@ -71,16 +82,21 @@
                                             class="btn btn-sm btn-outline-primary">Reopen</button>
                                 </form>
                                 {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <p class="text-center text-muted my-4">No resolved issues found.</p>
-            {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
+        {% else %}
+        <div class="py-4 text-center">
+            <div class="mb-3">
+                <i class="bi bi-clipboard-check text-muted" style="font-size: 2rem;"></i>
+            </div>
+            <p class="text-muted">No resolved issues found.</p>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

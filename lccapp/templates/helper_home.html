@@ -5,62 +5,66 @@
 {% set active_page = 'home' %}
 
 {% block content %}
-<div class="container py-4">
-    <!-- Dashboard Overview -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1>Helper Dashboard</h1>
-            <p class="text-muted">Manage and resolve issues for Lincoln Community Campground</p>
-        </div>
+<!-- Dashboard Overview -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="h2">Helper Dashboard</h1>
+        <p class="text-muted">Manage and resolve issues for Lincoln Community Campground</p>
     </div>
+</div>
 
-    <!-- Active Issues Table -->
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h2 class="h5 mb-0">Active Issues</h2>
-        </div>
-        <div class="card-body">
-            {% if active_issues %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Status</th>
-                            <th>Summary</th>
-                            <th>Reporter</th>
-                            <th>Created</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for issue in active_issues %}
-                        <tr>
-                            <td>
-                                <span class="badge bg-{{ issue.status_color }}">
-                                    {{ issue.status }}
-                                </span>
-                            </td>
-                            <td>{{ issue.summary }}</td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    {% if issue.profile_image %}
-                                    <img src="{{ url_for('static', filename='uploads/' + issue.profile_image) }}" 
-                                         class="rounded-circle me-2" width="32" height="32" alt="Profile">
-                                    {% else %}
-                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" 
-                                         style="width: 32px; height: 32px;">
-                                        <span class="small text-white">{{ issue.username[0]|upper }}</span>
-                                    </div>
-                                    {% endif %}
-                                    {{ issue.username }}
+<!-- Active Issues Table -->
+<div class="card shadow-sm">
+    <div class="card-header bg-light">
+        <h2 class="h5 mb-0">Active Issues</h2>
+    </div>
+    <div class="card-body">
+        {% if active_issues %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Status</th>
+                        <th>Summary</th>
+                        <th class="d-none d-md-table-cell">Reporter</th>
+                        <th class="d-none d-md-table-cell">Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for issue in active_issues %}
+                    <tr>
+                        <td>
+                            <span class="badge bg-{{ issue.status_color }}">
+                                {{ issue.status }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="d-inline-block text-truncate" style="max-width: 200px;">
+                                {{ issue.summary }}
+                            </span>
+                        </td>
+                        <td class="d-none d-md-table-cell">
+                            <div class="d-flex align-items-center">
+                                {% if issue.profile_image %}
+                                <img src="{{ url_for('static', filename='uploads/' + issue.profile_image) }}" 
+                                     class="rounded-circle me-2" width="32" height="32" alt="Profile">
+                                {% else %}
+                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" 
+                                     style="width: 32px; height: 32px;">
+                                    <span class="small text-white">{{ issue.username[0]|upper }}</span>
                                 </div>
-                            </td>
-                            <td>{{ issue.created_at.strftime('%Y-%m-%d') }}</td>
-                            <td>
+                                {% endif %}
+                                {{ issue.username }}
+                            </div>
+                        </td>
+                        <td class="d-none d-md-table-cell">{{ issue.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <div class="d-flex gap-1 flex-wrap">
                                 <form action="{{ url_for('helper_change_issue_status', issue_id=issue.issue_id) }}" 
                                       method="post" class="d-inline">
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle" 
+                                    <div class="btn-group btn-group-sm">
+                                        <button type="button" class="btn btn-outline-primary dropdown-toggle" 
                                                 data-bs-toggle="dropdown">
                                             Status
                                         </button>
@@ -78,19 +82,19 @@
                                 </form>
                                 <a href="{{ url_for('view_issue', issue_id=issue.issue_id) }}" 
                                    class="btn btn-sm btn-outline-secondary">View</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <p class="text-center text-muted my-4">No active issues at the moment.</p>
-            <div class="text-center">
-                <a href="{{ url_for('report_issue') }}" class="btn btn-success">Report New Issue</a>
-            </div>
-            {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
+        {% else %}
+        <p class="text-center text-muted my-4">No active issues at the moment.</p>
+        <div class="text-center">
+            <a href="{{ url_for('report_issue') }}" class="btn btn-success">Report New Issue</a>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
