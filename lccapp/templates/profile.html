@@ -21,7 +21,7 @@
                         {% else %}
                         <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center mx-auto mb-3" 
                              style="width: 150px; height: 150px;">
-                            <span class="display-4 text-white">{{ profile.username[0]|upper }}</span>
+                            <span class="display-4 text-white"> {{ profile.username[0]|upper() }}</span>
                         </div>
                         {% endif %}
                         <form action="{{ url_for('update_profile_image') }}" method="post" enctype="multipart/form-data">

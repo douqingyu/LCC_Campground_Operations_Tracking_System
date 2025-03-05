@@ -44,6 +44,11 @@
                                     {% if issue.profile_image %}
                                     <img src="{{ url_for('static', filename='uploads/' + issue.profile_image) }}" 
                                          class="rounded-circle me-2" width="32" height="32" alt="Profile">
+                                    {% else %}
+                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" 
+                                         style="width: 32px; height: 32px;">
+                                        <span class="small text-white">{{ issue.username[0]|upper }}</span>
+                                    </div>
                                     {% endif %}
                                     {{ issue.username }}
                                 </div>

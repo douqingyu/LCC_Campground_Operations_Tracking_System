@@ -21,6 +21,11 @@
                     {% if issue.profile_image %}
                     <img src="{{ url_for('static', filename='uploads/' + issue.profile_image) }}" 
                          class="rounded-circle me-2" width="48" height="48" alt="Profile">
+                    {% else %}
+                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" 
+                         style="width: 48px; height: 48px;">
+                        <span class="text-white">{{ issue.username[0]|upper }}</span>
+                    </div>
                     {% endif %}
                     <div>
                         <h6 class="mb-0">{{ issue.username }}</h6>
@@ -47,6 +52,11 @@
                         {% if comment.profile_image %}
                         <img src="{{ url_for('static', filename='uploads/' + comment.profile_image) }}" 
                              class="rounded-circle me-2" width="32" height="32" alt="Profile">
+                        {% else %}
+                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" 
+                             style="width: 32px; height: 32px;">
+                            <span class="small text-white">{{ comment.username[0]|upper }}</span>
+                        </div>
                         {% endif %}
                         <div>
                             <h6 class="mb-0">{{ comment.username }}</h6>
