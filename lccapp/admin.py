@@ -87,7 +87,7 @@ def manage_users():
             cursor.execute('SELECT * FROM users')
         users = cursor.fetchall()
         
-        # Get issue statistics (same query as admin_home)
+        # Get issue statistics
         cursor.execute('''
             SELECT status, COUNT(*) as count
             FROM issues
