@@ -44,62 +44,10 @@
     </div>
 </div>
 
-<!-- Action Buttons for Helpers and Admins - Mobile Optimized -->
-{% if user_role in ['helper', 'admin'] %}
-<div class="d-md-none mb-4">
-    <div class="d-grid">
-        <form action="
-            {% if user_role == 'admin' %}
-                {{ url_for('change_issue_status', issue_id=issue.issue_id) }}
-            {% else %}
-                {{ url_for('helper_change_issue_status', issue_id=issue.issue_id) }}
-            {% endif %}
-        " method="post">
-            <div class="btn-group w-100">
-                <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
-                    Change Status
-                </button>
-                <ul class="dropdown-menu w-100">
-                    <li><button type="submit" name="status" value="new" class="dropdown-item">New</button></li>
-                    <li><button type="submit" name="status" value="open" class="dropdown-item">Open</button></li>
-                    <li><button type="submit" name="status" value="stalled" class="dropdown-item">Stalled</button></li>
-                    <li><button type="submit" name="status" value="resolved" class="dropdown-item">Resolved</button></li>
-                </ul>
-            </div>
-        </form>
-    </div>
-</div>
-{% endif %}
-
 <!-- Comments Section -->
 <div class="card mb-4 shadow-sm">
-    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+    <div class="card-header bg-light">
         <h3 class="h5 mb-0">Comments ({{ comments|length }})</h3>
-        
-        <!-- Action Buttons for Helpers and Admins - Desktop Only -->
-        {% if user_role in ['helper', 'admin'] %}
-        <div class="d-none d-md-block">
-            <form action="
-                {% if user_role == 'admin' %}
-                    {{ url_for('change_issue_status', issue_id=issue.issue_id) }}
-                {% else %}
-                    {{ url_for('helper_change_issue_status', issue_id=issue.issue_id) }}
-                {% endif %}
-            " method="post" class="d-inline">
-                <div class="btn-group">
-                    <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
-                        Change Status
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><button type="submit" name="status" value="new" class="dropdown-item">New</button></li>
-                        <li><button type="submit" name="status" value="open" class="dropdown-item">Open</button></li>
-                        <li><button type="submit" name="status" value="stalled" class="dropdown-item">Stalled</button></li>
-                        <li><button type="submit" name="status" value="resolved" class="dropdown-item">Resolved</button></li>
-                    </ul>
-                </div>
-            </form>
-        </div>
-        {% endif %}
     </div>
     <div class="card-body">
         {% if comments %}

@@ -123,6 +123,9 @@ def change_user_status(user_id):
         flash('Invalid status value', 'error')
         return redirect(url_for('manage_users'))
 
+    # Check if admin is changing their own status to inactive
+    is_current_admin = (user_id == session.get('user_id'))
+    
     with db.get_cursor() as cursor:
         cursor.execute('''
             UPDATE users 
@@ -130,6 +133,13 @@ def change_user_status(user_id):
             WHERE user_id = %s
         ''', (new_status, user_id))
 
+    # If admin deactivated themselves, log them out and redirect to login page
+    if is_current_admin and new_status == 'inactive':
+        # Clear session data
+        session.clear()
+        flash('Your account has been deactivated. Please contact another administrator for assistance.', 'warning')
+        return redirect(url_for('login'))
+    
     flash('User status updated successfully', 'success')
     return redirect(url_for('manage_users'))
 
@@ -169,4 +179,64 @@ def change_issue_status(issue_id):
         ''', (new_status, issue_id))
 
     flash('Issue status updated successfully', 'success')
-    return redirect(url_for('admin_home'))
+    
+    # Get the source parameter to determine where to redirect
+    source = request.form.get('source')
+    
+    # Redirect based on source or referrer
+    if source == 'my_issues':
+        return redirect(url_for('admin_issues'))
+    elif request.referrer:
+        return redirect(request.referrer)
+    else:
+        return redirect(url_for('admin_home'))
+
+@app.route('/admin/issues')
+@admin_required
+def admin_issues():
+    """View issues reported by the current admin."""
+    with db.get_cursor() as cursor:
+        # Fetch issues reported by the current user
+        cursor.execute('''
+            SELECT i.*
+            FROM issues i
+            WHERE i.user_id = %s
+            ORDER BY i.created_at DESC
+        ''', (session['user_id'],))
+        my_issues = cursor.fetchall()
+        
+        # Add color codes for status display
+        for issue in my_issues:
+            issue['status_color'] = {
+                'new': 'danger',
+                'open': 'primary',
+                'stalled': 'warning',
+                'resolved': 'success'
+            }.get(issue['status'], 'secondary')
+        
+        # Count issues by status
+        cursor.execute('''
+            SELECT status, COUNT(*) as count
+            FROM issues
+            GROUP BY status
+        ''')
+        status_results = cursor.fetchall()
+        
+        # Initialize status counts
+        status_counts = {
+            'new': 0,
+            'open': 0,
+            'stalled': 0,
+            'resolved': 0
+        }
+        for row in status_results:
+            if row['status'] in status_counts:
+                status_counts[row['status']] = row['count']
+
+    return render_template('admin_home.html',
+                         my_issues=my_issues,
+                         show_my_issues=True,
+                         new_count=status_counts['new'],
+                         open_count=status_counts['open'],
+                         stalled_count=status_counts['stalled'],
+                         resolved_count=status_counts['resolved'])

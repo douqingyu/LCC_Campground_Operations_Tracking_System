@@ -1,17 +1,29 @@
 {% extends 'userbase.html' %}
 
-{% block title %}{% if show_users %}Manage Users{% else %}Admin Dashboard{% endif %} - LCC Issue Tracker{% endblock %}
+{% block title %}
+    {% if show_users %}Manage Users
+    {% elif show_my_issues %}My Reported Issues
+    {% else %}Admin Dashboard
+    {% endif %} - LCC Issue Tracker
+{% endblock %}
 
-{% set active_page = 'home' if not show_users else 'users' %}
+{% set active_page = 'issues' if show_my_issues else 'users' if show_users else 'home' %}
 
 {% block content %}
 <!-- Dashboard Overview -->
 <div class="row mb-4">
     <div class="col-12">
-        <h1 class="h2">{% if show_users %}User Management{% else %}Admin Dashboard{% endif %}</h1>
+        <h1 class="h2">
+            {% if show_users %}User Management
+            {% elif show_my_issues %}My Reported Issues
+            {% else %}Admin Dashboard
+            {% endif %}
+        </h1>
         <p class="text-muted">
             {% if show_users %}
             Manage user accounts, roles and access
+            {% elif show_my_issues %}
+            View and manage your reported issues
             {% else %}
             Manage issues and users for Lincoln Community Campground
             {% endif %}
@@ -23,9 +35,21 @@
 <div class="row mb-4">
     <div class="col-12">
         <div class="d-grid d-md-flex gap-2">
+            {% if show_users or show_my_issues %}
+            <a href="{{ url_for('admin_home') }}" class="btn btn-primary">
+                <i class="bi bi-house"></i> Dashboard
+            </a>
+            {% endif %}
+            
             <a href="{{ url_for('manage_users') }}" class="btn btn-warning">
                 <i class="bi bi-people-fill"></i> Manage Users
             </a>
+            
+            {% if not show_my_issues %}
+            <a href="{{ url_for('admin_issues') }}" class="btn btn-info">
+                <i class="bi bi-list-check"></i> My Reported Issues
+            </a>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -40,7 +64,6 @@
             </div>
             <div class="col-12 col-md-8">
                 <div class="d-flex flex-column flex-md-row gap-2">
-                    <a href="{{ url_for('admin_home') }}" class="btn btn-primary btn-sm">View Issues</a>
                     <form class="d-flex flex-grow-1" action="{{ url_for('manage_users') }}" method="get">
                         <input type="search" name="search" class="form-control form-control-sm me-2" 
                                placeholder="Search users..." value="{{ search }}">
@@ -131,6 +154,79 @@
         {% endif %}
     </div>
 </div>
+
+{% elif show_my_issues %}
+<!-- My Issues Table -->
+<div class="card shadow-sm">
+    <div class="card-header bg-light">
+        <h2 class="h5 mb-0">My Reported Issues</h2>
+    </div>
+    <div class="card-body">
+        {% if my_issues %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Status</th>
+                        <th>Summary</th>
+                        <th class="d-none d-md-table-cell">Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for issue in my_issues %}
+                    <tr>
+                        <td>
+                            <span class="badge bg-{{ issue.status_color }}">
+                                {{ issue.status }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="d-inline-block text-truncate" style="max-width: 200px;">
+                                {{ issue.summary }}
+                            </span>
+                        </td>
+                        <td class="d-none d-md-table-cell">{{ issue.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <div class="d-flex gap-1 flex-wrap">
+                                <form action="{{ url_for('change_issue_status', issue_id=issue.issue_id) }}" 
+                                      method="post" class="d-inline">
+                                    <input type="hidden" name="source" value="{% if show_my_issues %}my_issues{% else %}dashboard{% endif %}">
+                                    <div class="btn-group btn-group-sm">
+                                        <button type="button" class="btn btn-outline-primary dropdown-toggle" 
+                                                data-bs-toggle="dropdown">
+                                            Status
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><button type="submit" name="status" value="new" 
+                                                      class="dropdown-item">New</button></li>
+                                            <li><button type="submit" name="status" value="open" 
+                                                      class="dropdown-item">Open</button></li>
+                                            <li><button type="submit" name="status" value="stalled" 
+                                                      class="dropdown-item">Stalled</button></li>
+                                            <li><button type="submit" name="status" value="resolved" 
+                                                      class="dropdown-item">Resolved</button></li>
+                                        </ul>
+                                    </div>
+                                </form>
+                                <a href="{{ url_for('view_issue', issue_id=issue.issue_id) }}" 
+                                   class="btn btn-sm btn-outline-secondary">View</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-center text-muted my-4">You haven't reported any issues yet.</p>
+        <div class="text-center">
+            <a href="{{ url_for('report_issue') }}" class="btn btn-success">Report New Issue</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
 {% else %}
 <!-- Active Issues Table -->
 <div class="card shadow-sm">
