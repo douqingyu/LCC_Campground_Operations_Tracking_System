@@ -137,7 +137,6 @@ def change_user_status(user_id):
     if is_current_admin and new_status == 'inactive':
         # Clear session data
         session.clear()
-        flash('Your account has been deactivated. Please contact another administrator for assistance.', 'warning')
         return redirect(url_for('login'))
     
     flash('User status updated successfully', 'success')

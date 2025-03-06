@@ -1,169 +1,104 @@
-# Login Example v2.0.2 (13 February 2025)
+# Lincoln Community Campground (LCC) Issue Tracker
 
-This sample app demonstrates a simple login system that allows users to
-register, log in, and view pages specific to their user role. Those pages don't
-really do anything: it's just a simplified example to share some basic tools
-and techniques you might need when building a real-world login system.
+## Getting Started
 
-There are three user roles in this system:
-- **Customer**
-- **Staff**
-- **Admin**
+Here's how to get the Issue Tracker up and running:
 
-Anyone who registers via the app will be a **Customer**. The only way to create
-**Staff** or **Admin** accounts in this simple app is to insert them directly
-into the database. Hey, we didn't say this app was complete!
+1. Make sure you have Python and PostgreSQL installed on your computer.
 
-## Getting this Example Running
+2. Get a copy of the code by downloading it or using Git.
 
-To run the example yourself, you'll need to:
+3. Create a virtual environment:
+   ```
+   python -m venv .venv
+   ```
 
-1. Open the project in Visual Studio Code.
-2. Create yourself a virtual environment.
-3. Install all of the packages listed in requirements.txt (Visual Studio will
-   offer to do this for you during step 2).
-4. Use the [Database Creation Script](create_database.sql) to create your own
-   copy of the **loginexample** database.
-5. Use the [Database Population Script](populate_database.sql) to populate
-   the **loginexample** ***users*** table with example users.
-6. Modify [connect.py](loginapp/connect.py) with the connection details for
-   your local database server.
-7. Run [The Python/Flask application](run.py).
+4. Activate your virtual environment:
+   - On Windows: `.venv\Scripts\activate`
+   - On Mac/Linux: `source .venv/bin/activate`
 
-At that point, you should be able to register yourself a new **customer**
-account or log in using one of the **customer**, **staff**, or **admin**
-accounts listed in the [Database Population Script](populate_database.sql).
+5. Install the required packages:
+   ```
+   pip install -r requirements.txt
+   ```
 
-Enjoy!
+6. Set up the database:
+   ```
+   psql -U postgres -c "CREATE DATABASE lcc_issue_tracker;"
+   psql -U postgres -d lcc_issue_tracker -f create_database.sql
+   psql -U postgres -d lcc_issue_tracker -f populate_database.sql
+   ```
 
-## Database Scripts
+7. Update the database connection in `lccapp/connect.py` to match your PostgreSQL settings.
 
-While we're talking about the database, you should take a look at:
-- [MySQL script to create the necessary database](create_database.sql)
-- [MySQL script to populate the database with users](populate_database.sql)
-- [Python script to create password hashes](password_hash_generator.py)
+8. Run the application:
+   ```
+   python run.py
+   ```
 
-What's that third one? Well, for that we need to talk about...
 
-## Passwords
+## Using the System
 
-One of the key things about this login system is that it doesn't actually store
-users' passwords in the database. That may lead you to ask...
+### For Visitors
 
-### Why not store passwords?
-People tend to re-use passwords across multiple websites, no matter how much
-security experts might tell them not to. That means if someone gets access to
-your database, containing a whole lot of users' passwords and other details
-like names or email addresses, they can use those passwords to compromise
-your users' accounts with other services (like their email, or bank account).
+So you've found an issue at the campground and want to report it? Great! After logging in with your visitor account, click on "Report Issue" in the navigation bar. Fill in a clear title (like "Broken faucet at campsite #42") and provide details about the problem. The more specific you are, the easier it will be for our staff to fix it.
 
-### How do you handle registration and login without storing passwords?
+Once you've reported an issue, you can check its status anytime by clicking "My Reported Issues" from your dashboard. You'll see if it's new, being worked on, temporarily stalled, or resolved. Feel free to add comments if you remember additional details or want to say thanks when it's fixed!
 
-Easy! Well, sort of. It goes like this:
+### For Helpers
 
-1. When the user first gives us a password during registration, we pass it
-   through a cryptographic "hash" function: a one-way mathematical operation
-   that transforms the original password into its corresponding "hash value"
-   or "hash". The same password always results in the same hash.
-   
-2. We throw away the original password, and just keep the hash.
-   
-3. The hash value is useless to an attacker: because the hash-function is
-   one-way, anyone who steals our database of user accounts can't work out
-   what the users' passwords are. Well, okay, there are clever ways around
-   that. Look up "rainbow tables" if you're interested. Read Cory Doctorow's
-   "Knights of the Rainbow Table" if you're *really* interested. But it takes
-   a whole lot more time and computing power for an attacker to get a user's
-   password back from its hash than it does to just read the plain password
-   straight out of your database.
+As a helper, you're the one who makes the magic happen! When you log in, you'll see all active issues on your dashboard, sorted by status. New issues appear at the top, so you can quickly spot what needs attention.
 
-4. When a user tries to log in, we take the password they supplied us, run it
-   through the exact same hash function, and then compare the hash to the one
-   we have on file. Because the same password will always produce the same
-   hash, if the two hashes match then the passwords must match! Again, kinda.
-   It's possible, though very unlikely, that two passwords may produce the
-   same hash value. In that case, you'd be able to log in using either
-   password. These kinds of "hash collisions" are extremely rare, though. Rare
-   enough that we won't worry about that here.
+When you start working on an issue, change its status from "New" to "Open" using the status dropdown. This lets everyone know someone is on the case. If you need more information or you're waiting for parts, change it to "Stalled." Once you've solved the problem, mark it as "Resolved" with a comment about what you did to fix it.
 
-So, in short:
-1. The user gives us a password.
-2. We put that password though a one-way hashing algorithm to get its "hash".
-3. We store the hash, **not** the password.
-4. During login, we put the supplied password through the same algorithm.
-5. If the hash of the supplied password matches the hash of the user's original
-   password that we stored in step 3, then we know the user has supplied the
-   correct password... without having to know their password at all.
+You can view all the details of any issue by clicking the "View" button. This shows you the full description, all comments, and lets you add updates for the visitor who reported it.
 
-Cool, huh?
+And hey, if you happen to notice an issue yourself while working, you can report it just like a visitor would through your own dashboard.
 
-### Salting Passwords
+### For Administrators
 
-Remember how we mentioned that it's technically possible for an attacker to
-work out a user's original password from its hash, just expensive? Well, it's
-actually not expensive at all if you just pre-calculate one of those "rainbow
-tables": essentially a giant table mapping hash values back to passwords. It
-takes time to generate something like that, and the tables are absolutely huge,
-but storage is pretty cheap these days and you only have to generate the table
-once per hash algorithm. Once someone has a rainbow table for a particular
-algorithm, translating hashes back to passwords is just a simple lookup.
+As an admin, you have all the powers of a helper plus some extra responsibilities. You can manage user accounts by clicking "Manage Users" from your dashboard. From there, you can change user roles (maybe promote a reliable visitor to helper status), activate or deactivate accounts, and generally keep things running smoothly.
 
-The contemporary solution to this is to add a "salt" to each password before
-you hash it. The salt is just some random string. It doesn't have to be secret,
-necessarily, just specific to your app (which we used to do in older versions
-of this example project) or, ideally, specific to each password (which we do in
-this current version). Adding a salt to your passwords totally breaks the whole
-"rainbow table" approach: an attacker can't just use an off-the-shelf table
-any more. With our old approach, one salt for the whole app, an attacker needs
-to generate a rainbow table specific to *our application's salt*. When you're
-using per-password salts, like we are here, an attacker would have to generate
-one of those giant tables to break *each individual password* in our database.
+You also have oversight of all issues in the system. Your dashboard shows everything currently active, and you can step in to reassign or update any issue as needed.
 
-Quantum computing will probably break all this, in the not-too-distant future,
-but for now this approach provides a reasonable means of protecting users'
-passwords from disclosure if an attacker gains access to our database.
+## How Issues Flow Through the System
 
-### How exactly do we do all this?
+We've designed a simple workflow for issues to make tracking easy. Every issue starts as "New" when it's first reported. This means it's waiting for initial review.
 
-With the [Flask-Bcrypt library](https://flask-bcrypt.readthedocs.io/en/1.0.1/)
-(which is really just a Flask-specific wrapper for the bcrypt library) and a
-couple lines of code.
+When a helper or admin starts working on the issue, they'll change the status to "Open." This means someone is actively addressing the problem.
 
-If you take a look at the [database creation script](create_database.sql),
-you'll see that instead of a "password" field to store the password, we have a
-"password_hash" field that stores a binary string of 60 characters.
+Sometimes, issues hit a roadblock - maybe we need more information from the reporter, or we're waiting for replacement parts. In these cases, the status changes to "Stalled." This isn't forgotten; it's just temporarily on hold.
 
-Flask-Bcrypt uses the [bcrypt algorithm](https://en.wikipedia.org/wiki/Bcrypt)
-(as you may have guessed from the name). Bcrypt password hashes bundle together
-a bcrypt version number, the password hash itself, and the salt value used to
-generate it. Together, depending on which version of the algorithm you're
-using, this is a string of either 59 or 60 bytes (always 60 bytes in the
-current version).
+Finally, when the issue is fixed, it becomes "Resolved." The issue remains in the system for reference, but it's no longer shown in the active issues list.
 
-The string of bytes making up a bcrypt hash are all in the "printable
-character" range, so can be displayed a text string. In a MySQL database you
-could either store them as a `BINARY(60)` or `CHAR(60) BINARY` column: we use
-the latter format in this example because it makes it easier for us to see and
-edit the hashes in MySQL Workbench. Technically, because of the way our app
-is written, we could use plain old `CHAR(60)`. However, we explicitly use
-`CHAR(60) BINARY` because this tells MySQL to treat our string as binary data:
-where, for example, "ABC" is meaningfully different to "ABc" or "aBC".
+## About Security
 
-If this sounds terrifyingly complicated, don't worry. Take a look at the
-[Hash generator Python script](password_hash_generator.py) for an example of
-how to create the hashes (literally one line of code) and check a password
-against a hash (again, one line of code).
+We take security seriously! We never store your actual password in our database. Instead, we use a secure technique called "hashing" with the bcrypt algorithm. This transforms your password into a scrambled string that can't be reversed, even if someone somehow accessed our database.
 
-If we were using the bcrypt library directly, or another option such as
-[Flask-Hashing](https://flask-hashing.readthedocs.io/en/latest/) (used in older
-versions of this example) then we'd need to handle the "salting" process
-ourselves. However, the Flask-Bcrypt library does this for us. We only have to
-call the `generate_password_hash(password)` function to generate a hash for a
-new `password` (e.g. when a user signs up or changes their password). That
-function generates a new salt value then uses it to hash the password in a
-single step.
+When you log in, we take the password you type, apply the same transformation, and check if it matches what we have stored. This way, we can verify your identity without ever storing your actual password.
 
-Once we've generated a password hash and stored it in our database, we can then
-call the `check_password_hash(pw_hash, password)` function to check a whether a
-`password` supplied during login matches the `pw_hash` stored in our database
-for that particular user account.
+Each password also gets its own unique "salt" - a random value that makes it impossible for attackers to use pre-computed tables to crack passwords, even if they're common ones. These security features help keep your account safe.
+
+## Hitting a Snag?
+
+If you run into problems getting the system running, here are some common issues and how to fix them:
+
+Having trouble connecting to the database? Make sure PostgreSQL is running and check that the username, password, and database name in connect.py match your setup.
+
+Getting import errors when starting the application? Ensure your virtual environment is activated and all packages are installed correctly with `pip install -r requirements.txt`.
+
+Issues with file uploads? Check that the static/uploads directory exists and has the right permissions.
+
+Can't log in? If you're using sample data, try the credentials from populate_database.sql. For a fresh installation, you'll need to register a new account first.
+
+## Making It Your Own
+
+Want to customize the application? The project is organized to make this straightforward. All the HTML templates are in the lccapp/templates directory, and static files like CSS are in lccapp/static.
+
+The Python code is organized by functionality: admin.py for administrator features, helper.py for helper features, visitor.py for visitor features, and so on. This makes it easy to find and modify specific aspects of the system.
+
+If you need to change the database structure, update create_database.sql and then modify the corresponding queries in the Python files.
+
+When you're ready to deploy the application in a production environment, you'll want to switch from the built-in Flask server to something more robust like Gunicorn, set up proper database backups, and configure HTTPS for security.
+
+Now go ahead and start tracking those campground issues! Happy camping!
