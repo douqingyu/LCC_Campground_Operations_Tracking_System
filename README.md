@@ -13,16 +13,16 @@ Before you begin, you'll need Python 3.8 or higher, MySQL 5.7 or higher, a moder
    - Clone the repository or download and extract the ZIP file to your computer
 
 2. **Set up Python environment**
-   - Open a terminal/command prompt and navigate to the project directory
+   - Open a terminal platforms such as VS Code and navigate to the project directory
    - Create a virtual environment
    - Activate the virtual environment
    - Install required packages
 
 3. **Set up the database**
-   - Ensure MySQL server is running
-   - Enter your MySQL root password
-   - Create the database
-   - Populate with sample data
+   - Ensure MySQL Workbench server is running
+   - Enter your MySQL Workbench root password
+   - Create the database named lcc
+   - Populate with database
 
 4. **Configure database connection**
    - Open `lccapp/connect.py` in a text editor
@@ -67,7 +67,7 @@ Administrators have the most extensive permissions in the system. After logging 
 
 Administrators can manage issues just like helpers, but also have access to user management features. Click "Manage Users" to see all accounts in the system. From this page, you can change user roles by selecting a new role from the dropdown in the "Role" column. You can also activate or deactivate accounts by changing the status in the "Status" column - inactive users won't be able to log in.
 
-As a Administrator, you can also report new issues yourself using the "Report Issue" button, and check issues you've personally reported, click "My Reported Issues", just like visitors and helpers do.
+As a Administrator, you can also report new issues yourself using the "Report Issue" button, and check issues you've personally reported, click "My Reported Issues", just like visitors and helpers do. Note that when you deactivate your account, the system will automatically log out and you will not be able to log in. If you want to log in again, you must log in with another admin account and modify your deactivated status.
 
 ### Managing Your Profile
 
