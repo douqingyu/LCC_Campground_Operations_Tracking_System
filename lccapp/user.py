@@ -38,11 +38,11 @@ def login():
          return redirect(user_home_url())
 
     if request.method=='POST' and 'username' in request.form and 'password' in request.form:
-        # Get login credentials
+        # Get login info
         username = request.form['username']
         password = request.form['password']
 
-        # Validate credentials against database
+        # Validate info against database
         with db.get_cursor() as cursor:
             # Find account with matching username
             cursor.execute('''

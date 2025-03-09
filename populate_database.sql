@@ -1,37 +1,37 @@
--- Populate users table with required number of users (20 visitors, 5 helpers, 2 admins)
+-- Populate users table (20 visitors, 5 helpers, 2 admins)
 INSERT INTO `users` (`username`, `password_hash`, `email`, `first_name`, `last_name`, `location`, `profile_image`, `role`, `status`) VALUES
 -- Administrators (2)
-('admin1', '$2b$12$TMZW44wzSX9lV6GLH.dT.eogY1fWqI.6WqRDD.thFEFwm45VJbuQK', 'admin1@example.com', 'Admin', 'One', 'Auckland', NULL, 'admin', 'active'),
-('admin2', '$2b$12$pB7eB78VMuf1fUledgbunOdrzecp.YfJ7kXSHFSK9/y2guPghBQ/m', 'admin2@example.com', 'Admin', 'Two', 'Wellington', NULL, 'admin', 'active'),
+('admin1', '$2b$12$wURCn4ycmqlrnJEspPhmru6Y6XBghAvYI8ShHHrQyKcxilC8Poo.O', 'admin1@example.com', 'Admin', 'One', 'Auckland', NULL, 'admin', 'active'),
+('admin2', '$2b$12$wF3Yc6yIq/JjjUuZK.Kyq.GByBosUmybhPLmoUcB.Xr1n290UnXzq', 'admin2@example.com', 'Admin', 'Two', 'Wellington', NULL, 'admin', 'active'),
 
 -- Helpers (5)
-('helper1', '$2b$12$wpRN0Z8q1bgs7GyaI3hP2O9YmEXmkIKLo08piK4JJv1cHNO/CGJNe', 'helper1@example.com', 'Helper', 'One', 'Christchurch', NULL, 'helper', 'active'),
-('helper2', '$2b$12$ccQc9exlc6EmVbTAifSPpeVH6QAyo9FXI21vFnW3wpVXyeSYjuXMS', 'helper2@example.com', 'Helper', 'Two', 'Hamilton', NULL, 'helper', 'active'),
-('helper3', '$2b$12$Ve.3F3fmzAROz/4YJUpowuRGchMhMTHdlANkEOf5j6h.OconRUnLm', 'helper3@example.com', 'Helper', 'Three', 'Tauranga', NULL, 'helper', 'active'),
-('helper4', '$2b$12$/gi.aItAcnWfLA5Q6wWkRu9wwpaUMDEunRDFDU725vLAzsLGf.SzS', 'helper4@example.com', 'Helper', 'Four', 'Napier-Hastings', NULL, 'helper', 'active'),
-('helper5', '$2b$12$F861UGSjuwSqrFH0bfYLLenLi1bQNb93gtIEZTfAp8AqNfhJgkl7.', 'helper5@example.com', 'Helper', 'Five', 'Dunedin', NULL, 'helper', 'active'),
+('helper1', '$2b$12$U3HTP6/ZYxHA5bPa9r9MWuw0GIczzKG6m6Lwgo08PMOap6iEbby6u', 'helper1@example.com', 'Helper', 'One', 'Christchurch', NULL, 'helper', 'active'),
+('helper2', '$2b$12$P0n1ffehBre5FS8xaLRjSOFg.1VTgsiKaHJ9Cx3zGQEhtxileebQa', 'helper2@example.com', 'Helper', 'Two', 'Hamilton', NULL, 'helper', 'active'),
+('helper3', '$2b$12$Gs/L/wR/94dE5kfMg0iFAOkmlmKi71uMutC2dwEqz1a5c8mRvq5r6', 'helper3@example.com', 'Helper', 'Three', 'Tauranga', NULL, 'helper', 'active'),
+('helper4', '$2b$12$uXDEt9TB/kgCwOWH.MfJ.ud59KtImBjaYqWJh5T2ztK9H540aUCEu', 'helper4@example.com', 'Helper', 'Four', 'Napier-Hastings', NULL, 'helper', 'active'),
+('helper5', '$2b$12$Ldq/0.jzzMUNkEFevFusT.DEYL1q4NUNN/Gp12JTmhBkrdxpaMC8y', 'helper5@example.com', 'Helper', 'Five', 'Dunedin', NULL, 'helper', 'active'),
 
 -- Visitors (20)
-('visitor1', '$2b$12$lkQXcXEQJDCwPVWxcvkWDuSKqIYv09mazHpDkkBaAY.oQYroXANYG', 'visitor1@example.com', 'Visitor', 'One', 'Palmerston North', NULL, 'visitor', 'active'),
-('visitor2', '$2b$12$WabCu9ux4mdxgxmgdMsKaee4PwwSlOMf4jtPmF0Mp1j.I6nqgKRA2', 'visitor2@example.com', 'Visitor', 'Two', 'Nelson', NULL, 'visitor', 'active'),
-('visitor3', '$2b$12$E/vPsO/OYJgfivrHcGI74.RWMO6lh8LPZOvCEgM0CyXE6/Ft6bQJ.', 'visitor3@example.com', 'Visitor', 'Three', 'Rotorua', NULL, 'visitor', 'active'),
-('visitor4', '$2b$12$zRjIuIZ21sCvwftZr7fLE.YRmlbWJhKzrLToAkEklTFJrH2HPe9nm', 'visitor4@example.com', 'Visitor', 'Four', 'New Plymouth', NULL, 'visitor', 'active'),
-('visitor5', '$2b$12$aCz1ztS4OWgeNlNKQEgNLecz7KqrboRz4Pw8qG6yAQnvUQ2HQHVrK', 'visitor5@example.com', 'Visitor', 'Five', 'Whangarei', NULL, 'visitor', 'active'),
-('visitor6', '$2b$12$8QHHMpe8DkyXGswi.KRES.QYmCcXrcTqKwm8GWP4OiAc2PE5nbY3q', 'visitor6@example.com', 'Visitor', 'Six', 'Invercargill', NULL, 'visitor', 'active'),
-('visitor7', '$2b$12$TJ973YRt7eFNNTy9iGuMiuUsDGxISV9vRuqnsuKCHRw0lJOW/nlQO', 'visitor7@example.com', 'Visitor', 'Seven', 'Whanganui', NULL, 'visitor', 'active'),
-('visitor8', '$2b$12$U1vmG9tR73IsYxwXQa0xbOMQFveelNNJCRk0kcMOZKTiEB8ThLbbC', 'visitor8@example.com', 'Visitor', 'Eight', 'Gisborne', NULL, 'visitor', 'active'),
-('visitor9', '$2b$12$A4L7X8gZa7elVUe.mKL4a.KembH4/INpOcx05PMedqpWi56jXBzAe', 'visitor9@example.com', 'Visitor', 'Nine', 'Queenstown', NULL, 'visitor', 'active'),
-('visitor10', '$2b$12$yQ/AnwwKBvkKGMQ7pGpHZ.4hd8Um8WjpelBVKCr8UF.f99.O/B3x6', 'visitor10@example.com', 'Visitor', 'Ten', 'Blenheim', NULL, 'visitor', 'active'),
-('visitor11', '$2b$12$KT6FjEOfhCsS8e1SrhQGnBvVL5cBCT2', 'visitor11@example.com', 'Visitor', 'Eleven', 'Timaru', NULL, 'visitor', 'active'),
-('visitor12', '$2b$12$KT6FjEOfhCsS8e1SrhQGnBvVL5cBCT2', 'visitor12@example.com', 'Visitor', 'Twelve', 'Taupo', NULL, 'visitor', 'active'),
-('visitor13', '$2b$12$KT6FjEOfhCsS8e1SrhQGnBvVL5cBCT2', 'visitor13@example.com', 'Visitor', 'Thirteen', 'Whakatane', NULL, 'visitor', 'active'),
-('visitor14', '$2b$12$KT6FjEOfhCsS8e1SrhQGnBvVL5cBCT2', 'visitor14@example.com', 'Visitor', 'Fourteen', 'Cambridge', NULL, 'visitor', 'active'),
-('visitor15', '$2b$12$KT6FjEOfhCsS8e1SrhQGnBvVL5cBCT2', 'visitor15@example.com', 'Visitor', 'Fifteen', 'Te Awamutu', NULL, 'visitor', 'active'),
-('visitor16', '$2b$12$KT6FjEOfhCsS8e1SrhQGnBvVL5cBCT2', 'visitor16@example.com', 'Visitor', 'Sixteen', 'Oamaru', NULL, 'visitor', 'active'),
-('visitor17', '$2b$12$KT6FjEOfhCsS8e1SrhQGnBvVL5cBCT2', 'visitor17@example.com', 'Visitor', 'Seventeen', 'Ashburton', NULL, 'visitor', 'active'),
-('visitor18', '$2b$12$KT6FjEOfhCsS8e1SrhQGnBvVL5cBCT2', 'visitor18@example.com', 'Visitor', 'Eighteen', 'Levin', NULL, 'visitor', 'active'),
-('visitor19', '$2b$12$KT6FjEOfhCsS8e1SrhQGnBvVL5cBCT2', 'visitor19@example.com', 'Visitor', 'Nineteen', 'Kapiti', NULL, 'visitor', 'active'),
-('visitor20', '$2b$12$dM1qd.TEFMmExwVBqYvDde03Tx8sxIriU6CuCCRbiXM7PhjECvZ6W', 'visitor20@example.com', 'Visitor', 'Twenty', 'Paraparaumu', NULL, 'visitor', 'active');
+('visitor1', '$2b$12$G.TGPWD4X2nclkg1snO5Ze3PZXp89aYfAG2yvb4y5MFTw2J75K.Qe', 'visitor1@example.com', 'Visitor', 'One', 'Palmerston North', NULL, 'visitor', 'active'),
+('visitor2', '$2b$12$.k/B/Rh4Wf/IwuamP8n7gOVHC2CuXai1dgQAdYUCHUYKe5uPkIO9i', 'visitor2@example.com', 'Visitor', 'Two', 'Nelson', NULL, 'visitor', 'active'),
+('visitor3', '$2b$12$uw9DwEh18P0RhaGyzZ1Lvu1AJ.PGsxhdcQ4cga1aC2..FFhJqOiWm', 'visitor3@example.com', 'Visitor', 'Three', 'Rotorua', NULL, 'visitor', 'active'),
+('visitor4', '$2b$12$A9spdgZ3fXRdePt4M2U3juXtG4B1q0v2QM43AaEGQAP/qhcDB.JW.', 'visitor4@example.com', 'Visitor', 'Four', 'New Plymouth', NULL, 'visitor', 'active'),
+('visitor5', '$2b$12$QwWTM3Prq0.iLo3nhiYT7e62fRbRGs4x8Z3urMALiDiT9Vtq2nbai', 'visitor5@example.com', 'Visitor', 'Five', 'Whangarei', NULL, 'visitor', 'active'),
+('visitor6', '$2b$12$HwG1WWnV64vrTDNMIBuikuW2BoPz3b/rS2LeDXRH8BcYzggHZGXZC', 'visitor6@example.com', 'Visitor', 'Six', 'Invercargill', NULL, 'visitor', 'active'),
+('visitor7', '$2b$12$G9OXVaH25m1bKa20Hay.vO1W4m.xoxDxsjnhRYlE4ras/Gc.UqZ16', 'visitor7@example.com', 'Visitor', 'Seven', 'Whanganui', NULL, 'visitor', 'active'),
+('visitor8', '$2b$12$JSC.qtFvMpKZgK0mA17YHuSr3yAO/v6aMcqf86sctzkw3tDVq2rjy', 'visitor8@example.com', 'Visitor', 'Eight', 'Gisborne', NULL, 'visitor', 'active'),
+('visitor9', '$2b$12$TB91mxJhiBqHlPeKOCIe1eTSKyB4oZnNdp5CJFL3UY7d8WoEDXPFG', 'visitor9@example.com', 'Visitor', 'Nine', 'Queenstown', NULL, 'visitor', 'active'),
+('visitor10', '$2b$12$843aVQ6rbWKRNlVOOFqs1ecL55vNeecWhykz8TvLnG0XbohbtTsvq', 'visitor10@example.com', 'Visitor', 'Ten', 'Blenheim', NULL, 'visitor', 'active'),
+('visitor11', '$2b$12$r9Fdh1hmEB1gJwbBbVPYA.M5XcA9y9h7SyhdDWR0TMCBRrfGmNThe', 'visitor11@example.com', 'Visitor', 'Eleven', 'Timaru', NULL, 'visitor', 'active'),
+('visitor12', '$2b$12$9vWmUdrtSJXm/0M1Bl15zOX4SuYuDEYlVqbgHU3Gx9buTkL8jKowW', 'visitor12@example.com', 'Visitor', 'Twelve', 'Taupo', NULL, 'visitor', 'active'),
+('visitor13', '$2b$12$4Qmymvo8gCTeq0DGIctUCO0TNPjiXtyvwP5G5XP1htSHnB3wbuceq', 'visitor13@example.com', 'Visitor', 'Thirteen', 'Whakatane', NULL, 'visitor', 'active'),
+('visitor14', '$2b$12$Y63mtkeOaWWFYj6Iu4jeceuOcJp7eMJzkPUi3eyI8FAYdMswo05Za', 'visitor14@example.com', 'Visitor', 'Fourteen', 'Cambridge', NULL, 'visitor', 'active'),
+('visitor15', '$2b$12$OpSAzhKg6tdYqrW85.hlfO44MJwoIlL.0tOXRbewdS.PTjswo4J2q', 'visitor15@example.com', 'Visitor', 'Fifteen', 'Te Awamutu', NULL, 'visitor', 'active'),
+('visitor16', '$2b$12$P6fuw3hf0B8/6/rQR4xb3O4arZWCiOJxJeYjY2XhYEuWhTplQczUG', 'visitor16@example.com', 'Visitor', 'Sixteen', 'Oamaru', NULL, 'visitor', 'active'),
+('visitor17', '$2b$12$b/IyyqhdOQVkz/j/lcUK3O0s5CkRmH2ZaRcisdd5yMVElsodlFIpa', 'visitor17@example.com', 'Visitor', 'Seventeen', 'Ashburton', NULL, 'visitor', 'active'),
+('visitor18', '$2b$12$gjclvz12wbk349FIsiDTi.JhqdU0cOU09ESNf.MI1XUqRUDESxzOq', 'visitor18@example.com', 'Visitor', 'Eighteen', 'Levin', NULL, 'visitor', 'active'),
+('visitor19', '$2b$12$XMzENUEcoW3w.a41bT3jveoFQR5G6qeNEKxa1h1YHSjNs/3MTOscu', 'visitor19@example.com', 'Visitor', 'Nineteen', 'Kapiti', NULL, 'visitor', 'active'),
+('visitor20', '$2b$12$cVgxmBbVgIjM2uxp1bdWReSWD/dM5UWatNSLJSP82qcpn2ar2lL1i', 'visitor20@example.com', 'Visitor', 'Twenty', 'Paraparaumu', NULL, 'visitor', 'active');
 
 -- Populate issues table (20 issues total)
 INSERT INTO `issues` (`user_id`, `summary`, `description`, `created_at`, `status`) VALUES
@@ -56,7 +56,7 @@ INSERT INTO `issues` (`user_id`, `summary`, `description`, `created_at`, `status
 (2, 'Picnic table damaged at site #8', 'The wooden picnic table at campsite #8 has a broken bench seat on one side. The wood has split and has some protruding splinters that could cause injury. Table needs repair or replacement before the site is used again.', '2024-02-19 09:50:00', 'open'),
 (1, 'Question about local hiking trails', 'Are there any good hiking trails within walking distance of Lincoln Community Campground? I''d appreciate information about trail difficulty, length, and directions to access points from the campground. Planning a day hike tomorrow.', '2024-02-20 14:05:00', 'resolved');
 
--- Populate comments table (20 comments total, some issues with multiple comments, some with none)
+-- Populate comments table (20 comments total)
 INSERT INTO `comments` (`issue_id`, `user_id`, `content`, `created_at`) VALUES
 (1, 3, 'This WiFi issue has been reported by multiple campers. I will check the router and access points today.', '2024-02-20 14:30:00'),
 (1, 4, 'I have reset the router and checked all access points. The main router needed a firmware update which has been completed. Please let me know if the problem persists.', '2024-02-20 15:45:00'),

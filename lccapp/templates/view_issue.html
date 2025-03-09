@@ -79,7 +79,7 @@
     </div>
 </div>
 
-<!-- Add Comment Form - visible to helpers, admins, or the issue reporter -->
+<!-- Add Comment Form -->
 {% if user_role in ['helper', 'admin'] or user_id == issue.user_id %}
 <div class="card shadow-sm">
     <div class="card-header bg-light">

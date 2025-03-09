@@ -19,7 +19,7 @@ flask_bcrypt = Bcrypt(app)
 # Initial user accounts for LCC Issue Tracker
 users = [
     # Visitors (20)
-    UserAccount('visitor1', 'LCCvisitor1@2025'),
+    UserAccount('visitor1', 'Lccvisitor1@2025'),
     UserAccount('visitor2', 'LCCvisitor2@2025'),
     UserAccount('visitor3', 'LCCvisitor3@2025'),
     UserAccount('visitor4', 'LCCvisitor4@2025'),
@@ -41,15 +41,15 @@ users = [
     UserAccount('visitor20', 'LCCvisitor20@2025'),
 
     # Helpers (5)
-    UserAccount('helper1', 'LCChelper1@2025'),
+    UserAccount('helper1', 'Lcchelper1@2025'),
     UserAccount('helper2', 'LCChelper2@2025'),
     UserAccount('helper3', 'LCChelper3@2025'),
     UserAccount('helper4', 'LCChelper4@2025'),
     UserAccount('helper5', 'LCChelper5@2025'),
 
     # Administrators (2)
-    UserAccount('admin1', 'LCCadmin1@2025'),
-    UserAccount('admin2', 'LCCadmin2@2025')
+    UserAccount('admin1', 'Lccadmin1@2025'),
+    UserAccount('admin2', 'Lccadmin2@2025')
 ]
 
 print('Username | Password | Hash | Password Matches Hash')
