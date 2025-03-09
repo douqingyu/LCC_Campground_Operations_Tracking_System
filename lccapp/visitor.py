@@ -28,7 +28,7 @@ def visitor_home():
         ''', (session['user_id'],))
         recent_issues = cursor.fetchall()
         
-        # Add color coding for status display
+        # Add color codes for status display
         for issue in recent_issues:
             issue['status_color'] = {
                 'new': 'danger',
@@ -76,7 +76,6 @@ def my_issues():
         ''', (session['user_id'],))
         issues = cursor.fetchall()
         
-        # Add color coding for status display
         for issue in issues:
             issue['status_color'] = {
                 'new': 'danger',

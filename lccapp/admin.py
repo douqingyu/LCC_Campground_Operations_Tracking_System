@@ -204,7 +204,6 @@ def admin_issues():
         ''', (session['user_id'],))
         my_issues = cursor.fetchall()
         
-        # Add color codes for status display
         for issue in my_issues:
             issue['status_color'] = {
                 'new': 'danger',
