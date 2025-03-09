@@ -25,13 +25,13 @@ Before you begin, you'll need Python 3.8 or higher, MySQL 5.7 or higher, a moder
    - Populate with database
 
 4. **Configure database connection**
-   - Open `lccapp/connect.py` in a text editor
-   - Update the connection parameters:
+   - Create `connect.py` in lccapp
+   - Set the connection parameters:
      ```python
      dbuser = "root"          # Your MySQL username
      dbpass = "your_password" # Your MySQL password
      dbhost = "localhost"     # Database server address
-     dbport = "3306"          # MySQL port (default is 3306)
+     dbport = "3306"          # MySQL port
      dbname = "lcc"           # Database name
      ```
 

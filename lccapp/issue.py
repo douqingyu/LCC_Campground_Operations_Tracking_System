@@ -152,7 +152,7 @@ def resolved_issues():
         ''')
         resolved_issues = cursor.fetchall()
         
-        # Add status styling
+        # Add color codes for status display
         for issue in resolved_issues:
             issue['status_color'] = {
                 'new': 'danger',
