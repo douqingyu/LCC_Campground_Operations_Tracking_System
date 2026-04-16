@@ -1,4 +1,4 @@
-# Lincoln Community Campground Operations Analytics System
+# Lincoln Community Campground Operations Tracking System
 # Setup and Usage Guide
 
 This guide will show you how to set up and use the Lincoln Community Campground (LCC) Operations Analytics System.
