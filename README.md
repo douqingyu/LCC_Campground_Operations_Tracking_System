@@ -1,7 +1,7 @@
-# Lincoln Community Campground Issue Tracker
+# Lincoln Community Campground Operations Analytics System
 # Setup and Usage Guide
 
-This guide will show you how to set up and use the Lincoln Community Campground (LCC) Issue Tracker application.
+This guide will show you how to set up and use the Lincoln Community Campground (LCC) Operations Analytics System.
 
 ## System Requirements
 
